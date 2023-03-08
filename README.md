@@ -1,0 +1,1 @@
+Rust protocol for working with `.dof` files, a json-compatible format to specify keyboard layouts.
