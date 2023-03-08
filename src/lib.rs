@@ -232,5 +232,5 @@ mod tests {
         
         assert_eq!(dof_minimal, minimal_test);
         assert_eq!(dof_maximal, maximal_test);
-    } 
+    }
 }
