@@ -86,7 +86,29 @@ pub enum Key {
 
 impl ToString for Key {
     fn to_string(&self) -> String {
-        format!("{self:?}")
+        use Key::*;
+        use SpecialKey::*;
+
+        match self {
+            Empty => "~".into(),
+            MainLayerEq => "*".into(),
+            Char(c) => String::from(*c),
+            Special(s) => match s {
+                Esc => "esc".into(),
+                Space => "spc".into(),
+                Tab => "tab".into(),
+                Enter => "ret".into(),
+                Shift => "sft".into(),
+                Caps => "caps".into(),
+                Ctrl => "ctl".into(),
+                Alt => "alt".into(),
+                Meta => "mt".into(),
+                Fn => "fn".into(),
+                Backspace => "bsp".into(),
+                Del => "del".into()
+            },
+            Layer { name } => name.clone(),
+        }
     }
 }
 
@@ -117,7 +139,7 @@ impl FromStr for Key {
                 "caps" | "cps" | "cp" => Ok(Special(Caps)),
                 "ctrl" | "ctl" | "ct" => Ok(Special(Ctrl)),
                 "alt" | "lalt" | "ralt" | "lt" => Ok(Special(Alt)),
-                "meta" | "mta" | "met" | "mt" => Ok(Special(Meta)),
+                "meta" | "mta" | "met" | "mt" | "super" | "sup" | "sp" => Ok(Special(Meta)),
                 "fn" => Ok(Special(Fn)),
                 "backspace" | "bksp" | "bcsp" | "bsp" => Ok(Special(Backspace)),
                 "del" => Ok(Special(Del)),
