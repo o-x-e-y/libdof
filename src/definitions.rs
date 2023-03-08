@@ -60,6 +60,7 @@ impl FromStr for Finger {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SpecialKey {
     Esc,
+    Repeat,
     Space,
     Tab,
     Enter,
@@ -95,6 +96,7 @@ impl ToString for Key {
             Char(c) => String::from(*c),
             Special(s) => match s {
                 Esc => "esc".into(),
+                Repeat => "rpt".into(),
                 Space => "spc".into(),
                 Tab => "tab".into(),
                 Enter => "ret".into(),
@@ -132,6 +134,7 @@ impl FromStr for Key {
                 "\\~" => Ok(Char('~')),
                 "\\*" => Ok(Char('*')),
                 "esc" => Ok(Special(Esc)),
+                "repeat" | "rpt" => Ok(Special(Repeat)),
                 "space" | "spc" => Ok(Special(Space)),
                 "tab" | "tb" => Ok(Special(Tab)),
                 "enter" | "return" | "ret" | "ent" | "rt" => Ok(Special(Enter)),
