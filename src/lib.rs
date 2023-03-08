@@ -85,10 +85,10 @@ pub struct Anchor(u8, u8);
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DofIntermediate {
     name: String,
-    author: Option<String>,
+    authors: Option<Vec<String>>,
     board: String,
     year: Option<u32>,
-    tags: Option<Vec<String>>,
+    notes: Option<String>,
     layers: BTreeMap<String, Layer>,
     anchor: Option<Anchor>,
     // alt_fingerings: Option<Vec<String>>,
@@ -118,10 +118,10 @@ mod tests {
 
         let maximal_json = json!({
             "name": "Qwerty",
-            "author": "Christopher Latham Sholes",
+            "authors": ["Christopher Latham Sholes"],
             "board": "ansi",
             "year": 1889,
-            "tags": ["bad", "fast"],
+            "notes": "the OG. Without Qwerty, none of this would be necessary.",
             "anchor": [1, 2],
             "layers": {
                 "main": [
@@ -150,10 +150,10 @@ mod tests {
 
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
-            author: None,
+            authors: None,
             board: "ansi".into(),
             year: None,
-            tags: None,
+            notes: None,
             anchor: None,
             layers: BTreeMap::new(),
             fingerings: {
@@ -163,10 +163,10 @@ mod tests {
 
         let maximal_test = DofIntermediate {
             name: "Qwerty".into(),
-            author: Some("Christopher Latham Sholes".into()),
+            authors: Some(vec!["Christopher Latham Sholes".into()]),
             board: "ansi".into(),
             year: Some(1889),
-            tags: Some(vec!["bad".into(), "fast".into()]),
+            notes: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
             anchor: Some(Anchor(1, 2)),
             layers: BTreeMap::from_iter([
                 ("main".into(), Layer(vec![
