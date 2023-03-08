@@ -78,6 +78,9 @@ pub struct Layer(
     Vec<Vec<Key>>
 );
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Anchor(u8, u8);
+
 /// Main struct to use for parsing
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DofIntermediate {
@@ -87,7 +90,7 @@ pub struct DofIntermediate {
     year: Option<u32>,
     tags: Option<Vec<String>>,
     layers: BTreeMap<String, Layer>,
-    layers: HashMap<String, Layer>,
+    anchor: Option<Anchor>,
     // alt_fingerings: Option<Vec<String>>,
     // combos: Option<HashMap<String, String>>,
     fingerings: Fingering,
@@ -119,7 +122,7 @@ mod tests {
             "board": "ansi",
             "year": 1889,
             "tags": ["bad", "fast"],
-            "note": "the OG. Without Qwerty, none of this would be necessary.",
+            "anchor": [1, 2],
             "layers": {
                 "main": [
                     "` 1 2 3 4 5  6 7 8 9 0 - = bsp",
@@ -151,7 +154,7 @@ mod tests {
             board: "ansi".into(),
             year: None,
             tags: None,
-            note: None,
+            anchor: None,
             layers: BTreeMap::new(),
             fingerings: {
                 Implicit("angle".into())
@@ -164,7 +167,7 @@ mod tests {
             board: "ansi".into(),
             year: Some(1889),
             tags: Some(vec!["bad".into(), "fast".into()]),
-            note: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
+            anchor: Some(Anchor(1, 2)),
             layers: BTreeMap::from_iter([
                 ("main".into(), Layer(vec![
                     vec![
