@@ -2,6 +2,9 @@ use thiserror::Error;
 
 use std::str::FromStr;
 
+/// This should cover all types of fingers... for now
+/// implements `ToString` and `FromStr`. The latter also allows parsing from numbers,
+/// where `LP`: 1, `LR`: 2 etc.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Finger {
     LP,
@@ -53,6 +56,7 @@ impl FromStr for Finger {
     }
 }
 
+/// Covers a wide range of keys that don't output characters, but are still commonly found on a keyboard.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SpecialKey {
     Esc,
@@ -67,27 +71,10 @@ pub enum SpecialKey {
     Fn,
     Backspace,
     Del,
-    PrtScreen,
-    Ins,
-    Home,
-    End,
-    PageUp,
-    PageDown,
-    NumLock,
-    F1,
-    F2,
-    F3,
-    F4,
-    F5,
-    F6,
-    F7,
-    F8,
-    F9,
-    F10,
-    F11,
-    F12,
 }
 
+/// Covers all keys commonly found on a keyboard. Implements `ToString` and `FromStr`, where the latter
+/// only fails if the string passed to it was empty.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Key {
     Empty,
@@ -134,25 +121,6 @@ impl FromStr for Key {
                 "fn" => Ok(Special(Fn)),
                 "backspace" | "bksp" | "bcsp" | "bsp" => Ok(Special(Backspace)),
                 "del" => Ok(Special(Del)),
-                "prtscreen" | "prt" => Ok(Special(PrtScreen)),
-                "ins" => Ok(Special(Ins)),
-                "home" => Ok(Special(Home)),
-                "end" => Ok(Special(End)),
-                "pageup" | "pgu" | "pu"=> Ok(Special(PageUp)),
-                "pagedown" | "pgd" | "pd" => Ok(Special(PageDown)),
-                "numlock" | "nlk" | "nml" => Ok(Special(NumLock)),
-                "f1" => Ok(Special(F1)),
-                "f2" => Ok(Special(F2)),
-                "f3" => Ok(Special(F3)),
-                "f4" => Ok(Special(F4)),
-                "f5" => Ok(Special(F5)),
-                "f6" => Ok(Special(F6)),
-                "f7" => Ok(Special(F7)),
-                "f8" => Ok(Special(F8)),
-                "f9" => Ok(Special(F9)),
-                "f10" => Ok(Special(F10)),
-                "f11" => Ok(Special(F11)),
-                "f12" => Ok(Special(F12)),
                 _ => Ok(Layer { name: s.into() })
             }
         }

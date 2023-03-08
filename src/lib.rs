@@ -122,7 +122,6 @@ mod tests {
             "note": "the OG. Without Qwerty, none of this would be necessary.",
             "layers": {
                 "main": [
-                    "esc f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 prt ins del home end pgu pgd",
                     "` 1 2 3 4 5  6 7 8 9 0 - = bsp",
                     "tb q w e r t  y u i o p [ ] \\",
                     "cps a s d f g  h j k l ; ' ret",
@@ -130,7 +129,6 @@ mod tests {
                     "ct fn mt alt spc altgr mt ct"
                 ],
                 "shift": [
-                    "* * * * * * * * * * * * * * * * * * * *",
                     "\\~ ! @ # $ %  ^ & \\* ( ) _ + bsp",
                     "tab  Q W E R T  Y U   I O P { } |",
                     "caps  A S D F G  H J   K L : \" ent",
@@ -139,8 +137,7 @@ mod tests {
                 ]
             },
             "fingerings": [
-                "0 1 2 2 3 3 3 6 6 7 7 8 8 7 7 7 7 8 8 8",
-                "LP LP LR LM LI LI  RI RI RM RR RP RP RP RP RP",
+                "0  0  1  2  3  3   6  6  7  8  9  9  9  9  9",
                 "LP LP LR LM LI LI  RI RI RM RR RP RP RP RP",
                 "LP LP LR LM LI LI  RI RI RM RR RP RP RP",
                 "LP LR LM LI LI LI  RI RI RM RR RP RP",
@@ -171,12 +168,6 @@ mod tests {
             layers: HashMap::from_iter([
                 ("main".into(), Layer(vec![
                     vec![
-                        Special(Esc), Special(F1),  Special(F2),  Special(F3),  Special(F4), 
-                        Special(F5),  Special(F6),  Special(F7),  Special(F8),  Special(F9), 
-                        Special(F10),  Special(F11),  Special(F12), Special(PrtScreen), Special(Ins),
-                        Special(Del), Special(Home), Special(End), Special(PageUp), Special(PageDown)
-                    ],
-                    vec![
                         Char('`'), Char('1'), Char('2'), Char('3'), Char('4'), Char('5'), Char('6'),
                         Char('7'), Char('8'), Char('9'), Char('0'), Char('-'), Char('='), Special(Backspace)
                     ],
@@ -198,12 +189,6 @@ mod tests {
                     ],
                 ])),
                 ("shift".into(), Layer(vec![
-                    vec![
-                        MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, 
-                        MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, 
-                        MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, 
-                        MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq, MainLayerEq
-                    ],
                     vec![
                         Char('~'), Char('!'), Char('@'), Char('#'), Char('$'), Char('%'), Char('^'),
                         Char('&'), Char('*'), Char('('), Char(')'), Char('_'), Char('+'), Special(Backspace)
@@ -229,7 +214,6 @@ mod tests {
             fingerings: {
                 Explicit(FingeringRows(
                     vec![
-                        vec![LP, LR, LM, LM, LI, LI, LI, RI, RI, RM, RM, RR, RR, RM, RM, RM, RM, RR, RR, RR],
                         vec![LP, LP, LR, LM, LI, LI,  RI, RI, RM, RR, RP, RP, RP, RP, RP],
                         vec![LP, LP, LR, LM, LI, LI,  RI, RI, RM, RR, RP, RP, RP, RP],
                         vec![LP, LP, LR, LM, LI, LI,  RI, RI, RM, RR, RP, RP, RP],
