@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use std::str::FromStr;
 
-/// This should cover all types of fingers... for now
+/// This should cover all fingers... for now
 /// implements `ToString` and `FromStr`. The latter also allows parsing from numbers,
 /// where `LP`: 1, `LR`: 2 etc.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
