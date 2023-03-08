@@ -22,7 +22,7 @@ serde_conv!(
             String::new()
         } else {
             row.into_iter()
-                .take(row.len() - 2)
+                .take(row.len() - 1)
                 .map(|e| format!("{e:?} "))
                 .chain([row.last().unwrap().to_string()])
                 .collect::<String>()
@@ -58,8 +58,8 @@ serde_conv!(
             String::new()
         } else {
             row.into_iter()
-                .take(row.len() - 2)
-                .map(|e| format!("{e:?} "))
+                .take(row.len() - 1)
+                .map(|e| format!("{} ", e.to_string()))
                 .chain([row.last().unwrap().to_string()])
                 .collect::<String>()
         }
