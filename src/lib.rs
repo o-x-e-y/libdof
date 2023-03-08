@@ -202,7 +202,7 @@ mod tests {
                         Char('H'), Char('J'), Char('K'), Char('L'),  Char(':'), Char('\"'), Special(Enter)
                     ],
                     vec![
-                        MainLayerEq, Char('Z'), Char('X'), Char('C'), Char('V'), Char('B'),
+                        Transparent, Char('Z'), Char('X'), Char('C'), Char('V'), Char('B'),
                         Char('N'), Char('M'), Char('<'),  Char('>'),  Char('?'), Special(Shift)
                     ],
                     vec![

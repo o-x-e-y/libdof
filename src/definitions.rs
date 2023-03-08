@@ -79,7 +79,7 @@ pub enum SpecialKey {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Key {
     Empty,
-    MainLayerEq,
+    Transparent,
     Char(char),
     Special(SpecialKey),
     Layer { name: String },
@@ -92,7 +92,7 @@ impl ToString for Key {
 
         match self {
             Empty => "~".into(),
-            MainLayerEq => "*".into(),
+            Transparent => "*".into(),
             Char(c) => String::from(*c),
             Special(s) => match s {
                 Esc => "esc".into(),
@@ -101,7 +101,7 @@ impl ToString for Key {
                 Tab => "tab".into(),
                 Enter => "ret".into(),
                 Shift => "sft".into(),
-                Caps => "caps".into(),
+                Caps => "cps".into(),
                 Ctrl => "ctl".into(),
                 Alt => "alt".into(),
                 Meta => "mt".into(),
@@ -124,7 +124,7 @@ impl FromStr for Key {
             0 => Err(DefinitionError::KeyParseError("<empty>".into())),
             1 => match s {
                 "~" => Ok(Empty),
-                "*" => Ok(MainLayerEq),
+                "*" => Ok(Transparent),
                 " " => Ok(Special(Space)),
                 "\n" => Ok(Special(Enter)),
                 "\t" => Ok(Special(Tab)),
