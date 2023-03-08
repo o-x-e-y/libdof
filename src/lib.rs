@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use serde_with::{serde_conv, serde_as};
 use thiserror::Error;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::definitions::*;
 
@@ -86,7 +86,7 @@ pub struct DofIntermediate {
     board: String,
     year: Option<u32>,
     tags: Option<Vec<String>>,
-    note: Option<String>,
+    layers: BTreeMap<String, Layer>,
     layers: HashMap<String, Layer>,
     // alt_fingerings: Option<Vec<String>>,
     // combos: Option<HashMap<String, String>>,
@@ -152,7 +152,7 @@ mod tests {
             year: None,
             tags: None,
             note: None,
-            layers: HashMap::new(),
+            layers: BTreeMap::new(),
             fingerings: {
                 Implicit("angle".into())
             }
@@ -165,7 +165,7 @@ mod tests {
             year: Some(1889),
             tags: Some(vec!["bad".into(), "fast".into()]),
             note: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
-            layers: HashMap::from_iter([
+            layers: BTreeMap::from_iter([
                 ("main".into(), Layer(vec![
                     vec![
                         Char('`'), Char('1'), Char('2'), Char('3'), Char('4'), Char('5'), Char('6'),
