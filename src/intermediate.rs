@@ -15,55 +15,63 @@ pub enum DofIntermediateError {
     DefinitionError(#[from] definitions::DefinitionError)
 }
 
-serde_conv!(
-    FingeringStrAsRow,
-    Vec<Finger>,
-    |row: &Vec<Finger>| {
-        if row.len() == 0 {
-            String::new()
-        } else {
-            row.into_iter()
-                .take(row.len() - 1)
-                .map(|e| format!("{e} "))
-                .chain([row.last().unwrap().to_string()])
-                .collect::<String>()
+macro_rules! impl_keyboard {
+    ($type:ty, $ret:ty, $alias:ident) => {
+        impl $type {
+            pub fn rows(&self) -> impl Iterator<Item = &Vec<$ret>> {
+                self.0
+                    .iter()
+            }
+            pub fn keys(&self) -> impl Iterator<Item = &$ret> {
+                self
+                    .rows()
+                    .flatten()
+            }
+            pub fn shape(&self) -> Vec<usize> {
+                self
+                    .rows()
+                    .map(|r| r.len())
+                    .collect()
+            }
         }
-    },
-    |line: String| {
-        line.split_whitespace()
-            .map(|s| s.parse::<Finger>())
-            .collect::<Result<Vec<_>, DefinitionError>>()
+
+        serde_conv!(
+            $alias,
+            Vec<$ret>,
+            |row: &Vec<$ret>| {
+                if row.len() == 0 {
+                    String::new()
+                } else {
+                    row.into_iter()
+                        .take(row.len() - 1)
+                        .map(|e| format!("{e} "))
+                        .chain([row.last().unwrap().to_string()])
+                        .collect::<String>()
+                }
+            },
+            |line: String| {
+                line.split_whitespace()
+                    .map(|s| s.parse::<$ret>())
+                    .collect::<Result<Vec<_>, crate::definitions::DefinitionError>>()
+            }
+        );
     }
-);
+}
+
+impl_keyboard!(Fingering, Finger, FingeringStrAsRow);
+impl_keyboard!(Layer, Key, LayerStrAsRow);
+
+#[serde_as]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Fingering(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>);
 
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum Fingering {
-    Explicit(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>),
+pub enum ParsedFingering {
+    Explicit(Fingering),
     Implicit(#[serde_as(as = "DisplayFromStr")] NamedFingering)
 }
-
-serde_conv!(
-    LayerStrAsRow,
-    Vec<Key>,
-    |row: &Vec<Key>| {
-        if row.len() == 0 {
-            String::new()
-        } else {
-            row.into_iter()
-                .take(row.len() - 1)
-                .map(|e| format!("{e} ",))
-                .chain([row.last().unwrap().to_string()])
-                .collect::<String>()
-        }
-    },
-    |line: String| {
-        line.split_whitespace()
-            .map(|s| s.parse::<Key>())
-            .collect::<Result<Vec<_>, DefinitionError>>()
-    }
-);
 
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -89,7 +97,7 @@ pub struct DofIntermediate {
     anchor: Option<Anchor>,
     // alt_fingerings: Option<Vec<String>>,
     // combos: Option<HashMap<String, String>>,
-    fingerings: Fingering,
+    fingerings: ParsedFingering,
 }
 
 #[cfg(test)]
@@ -152,7 +160,7 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingerings: {
-                Fingering::Implicit(NamedFingering::Angle)
+                ParsedFingering::Implicit(NamedFingering::Angle)
             }
         };
 
@@ -210,7 +218,7 @@ mod tests {
                 ]))
             ]),
             fingerings: {
-                Fingering::Explicit(
+                ParsedFingering::Explicit(Fingering(
                     vec![
                         vec![LP, LP, LR, LM, LI, LI,  RI, RI, RM, RR, RP, RP, RP, RP, RP],
                         vec![LP, LP, LR, LM, LI, LI,  RI, RI, RM, RR, RP, RP, RP, RP],
@@ -218,7 +226,7 @@ mod tests {
                         vec![LP, LR, LM, LI, LI, LI,  RI, RI, RM, RR, RP, RP],
                         vec![LP,  LP,  LT,  LT,     LT,     RT,  RT,  RP]
                     ]
-                )
+                ))
             }
         };
 
