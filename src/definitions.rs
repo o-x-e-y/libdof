@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use std::str::FromStr;
+use std::{str::FromStr, fmt::Display};
 
 /// This should cover all fingers... for now
 /// implements `ToString` and `FromStr`. The latter also allows parsing from numbers,
@@ -27,9 +27,9 @@ pub enum DefinitionError {
     KeyParseError(String)
 }
 
-impl ToString for Finger {
-    fn to_string(&self) -> String {
-        format!("{self:?}")
+impl Display for Finger {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 
@@ -85,12 +85,12 @@ pub enum Key {
     Layer { name: String },
 }
 
-impl ToString for Key {
-    fn to_string(&self) -> String {
+impl Display for Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use Key::*;
         use SpecialKey::*;
 
-        match self {
+        let s = match self {
             Empty => "~".into(),
             Transparent => "*".into(),
             Char(c) => String::from(*c),
@@ -110,7 +110,9 @@ impl ToString for Key {
                 Del => "del".into()
             },
             Layer { name } => name.clone(),
-        }
+        };
+
+        write!(f, "{s}")
     }
 }
 
