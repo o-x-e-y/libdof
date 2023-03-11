@@ -2,6 +2,16 @@ use thiserror::Error;
 
 use std::{str::FromStr, fmt::Display};
 
+#[derive(Debug, Error)]
+pub enum DefinitionError {
+    #[error("Couldn't parse Finger from '{0}'")]
+    FingerParseError(String),
+    #[error("an empty string can't be parsed into a Key")]
+    EmptyKeyError,
+    #[error("{0}")]
+    Infallible(#[from] std::convert::Infallible)
+}
+
 /// This should cover all fingers... for now
 /// implements `ToString` and `FromStr`. The latter also allows parsing from numbers,
 /// where `LP`: 1, `LR`: 2 etc.
@@ -17,14 +27,6 @@ pub enum Finger {
     RM,
     RR,
     RP
-}
-
-#[derive(Debug, Error)]
-pub enum DefinitionError {
-    #[error("Couldn't parse finger from '{0}'")]
-    FingerParseError(String),
-    #[error("Couldn't parse key from '{0}'")]
-    KeyParseError(String)
 }
 
 impl Display for Finger {
@@ -53,6 +55,43 @@ impl FromStr for Finger {
             "RP" | "9" => Ok(RP),
             _ => Err(DefinitionError::FingerParseError(s.to_string()))
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NamedFingering {
+    Traditional,
+    Angle,
+    Custom(String)
+}
+
+impl Display for NamedFingering {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use NamedFingering::*;
+
+        let s = match self {
+            Traditional => "traditional",
+            Angle => "angle",
+            Custom(name) => name.as_str()
+        };
+
+        write!(f, "{s}")
+    }
+}
+
+impl FromStr for NamedFingering {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use NamedFingering::*;
+
+        let res = match s.to_lowercase().as_str() {
+            "standard" | "traditional" => Traditional,
+            "angle" => Angle,
+            name => Custom(name.into())
+        };
+
+        Ok(res)
     }
 }
 
@@ -123,7 +162,7 @@ impl FromStr for Key {
         use Key::*;
         use SpecialKey::*;
         match s.len() {
-            0 => Err(DefinitionError::KeyParseError("<empty>".into())),
+            0 => Err(DefinitionError::EmptyKeyError),
             1 => match s {
                 "~" => Ok(Empty),
                 "*" => Ok(Transparent),
