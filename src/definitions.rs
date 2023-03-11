@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use std::{str::FromStr, fmt::Display};
+use std::{fmt::Display, str::FromStr};
 
 #[derive(Debug, Error)]
 pub enum DefinitionError {
@@ -9,7 +9,7 @@ pub enum DefinitionError {
     #[error("an empty string can't be parsed into a Key")]
     EmptyKeyError,
     #[error("{0}")]
-    Infallible(#[from] std::convert::Infallible)
+    Infallible(#[from] std::convert::Infallible),
 }
 
 /// This should cover all fingers... for now
@@ -26,7 +26,7 @@ pub enum Finger {
     RI,
     RM,
     RR,
-    RP
+    RP,
 }
 
 impl Display for Finger {
@@ -40,7 +40,7 @@ impl FromStr for Finger {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Finger::*;
-        
+
         let s = s.trim_start().trim_end();
         match s {
             "LP" | "0" => Ok(LP),
@@ -53,7 +53,7 @@ impl FromStr for Finger {
             "RM" | "7" => Ok(RM),
             "RR" | "8" => Ok(RR),
             "RP" | "9" => Ok(RP),
-            _ => Err(DefinitionError::FingerParseError(s.to_string()))
+            _ => Err(DefinitionError::FingerParseError(s.to_string())),
         }
     }
 }
@@ -62,7 +62,7 @@ impl FromStr for Finger {
 pub enum NamedFingering {
     Traditional,
     Angle,
-    Custom(String)
+    Custom(String),
 }
 
 impl Display for NamedFingering {
@@ -72,7 +72,7 @@ impl Display for NamedFingering {
         let s = match self {
             Traditional => "traditional",
             Angle => "angle",
-            Custom(name) => name.as_str()
+            Custom(name) => name.as_str(),
         };
 
         write!(f, "{s}")
@@ -88,7 +88,7 @@ impl FromStr for NamedFingering {
         let res = match s.to_lowercase().as_str() {
             "standard" | "traditional" => Traditional,
             "angle" => Angle,
-            name => Custom(name.into())
+            name => Custom(name.into()),
         };
 
         Ok(res)
@@ -146,7 +146,7 @@ impl Display for Key {
                 Meta => "mt".into(),
                 Fn => "fn".into(),
                 Backspace => "bsp".into(),
-                Del => "del".into()
+                Del => "del".into(),
             },
             Layer { name } => name.clone(),
         };
@@ -187,8 +187,8 @@ impl FromStr for Key {
                 "fn" => Ok(Special(Fn)),
                 "backspace" | "bksp" | "bcsp" | "bsp" => Ok(Special(Backspace)),
                 "del" => Ok(Special(Del)),
-                _ => Ok(Layer { name: s.into() })
-            }
+                _ => Ok(Layer { name: s.into() }),
+            },
         }
     }
 }
@@ -199,19 +199,19 @@ pub enum KeyboardType {
     Iso,
     Ortho,
     Colstag,
-    Custom(String)
+    Custom(String),
 }
 
 impl Display for KeyboardType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use KeyboardType::*;
-        
+
         let s = match self {
             Ansi => "ansi",
             Iso => "iso",
             Ortho => "ortho",
             Colstag => "colstag",
-            Custom(name) => name.as_str()
+            Custom(name) => name.as_str(),
         };
 
         write!(f, "{s}")
