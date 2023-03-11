@@ -76,11 +76,13 @@ pub struct Layer(
 pub struct Anchor(u8, u8);
 
 /// Main struct to use for parsing
+#[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DofIntermediate {
     name: String,
     authors: Option<Vec<String>>,
-    board: String,
+    #[serde_as(as = "DisplayFromStr")]
+    board: KeyboardType,
     year: Option<u32>,
     notes: Option<String>,
     layers: BTreeMap<String, Layer>,
@@ -144,7 +146,7 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: "ansi".into(),
+            board: KeyboardType::Ansi,
             year: None,
             notes: None,
             anchor: None,
@@ -157,7 +159,7 @@ mod tests {
         let maximal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: Some(vec!["Christopher Latham Sholes".into()]),
-            board: "ansi".into(),
+            board: KeyboardType::Ansi,
             year: Some(1889),
             notes: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
             anchor: Some(Anchor(1, 2)),

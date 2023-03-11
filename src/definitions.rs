@@ -193,13 +193,43 @@ impl FromStr for Key {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use Finger::*;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum KeyboardType {
+    Ansi,
+    Iso,
+    Ortho,
+    Colstag,
+    Custom(String)
+}
 
-    #[test]
-    fn as_string() {
-        assert_eq!(format!("{:?}", LP), "LP");
+impl Display for KeyboardType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use KeyboardType::*;
+        
+        let s = match self {
+            Ansi => "ansi",
+            Iso => "iso",
+            Ortho => "ortho",
+            Colstag => "colstag",
+            Custom(name) => name.as_str()
+        };
+
+        write!(f, "{s}")
+    }
+}
+
+impl FromStr for KeyboardType {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use KeyboardType::*;
+
+        match s.to_lowercase().as_str() {
+            "ansi" => Ok(Ansi),
+            "iso" => Ok(Iso),
+            "ortho" => Ok(Ortho),
+            "colstag" => Ok(Colstag),
+            name => Ok(Custom(name.into())),
+        }
     }
 }
