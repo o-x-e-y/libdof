@@ -40,7 +40,7 @@ Some fields are optional.
   - Any shape is allowed, but if you use a standard 3x10 shape, you may be able to elide a fingermap (more on this below). 
   - `~` is used to (on main) specify an empty char, (on shift) to use the default for what's on lowercase, and on any other layer to refer to the key on the main layer. You can escape it using a backslash `\~` to get an actual `~` key. Likewise, backslash must be escaped `\\`.
 
-`fingering`: specifies which finger presses which key. It's formatted the same as the layers object, and it should have the exact same shape (it will error otherwise). 
+* `fingering`: specifies which finger presses which key. It's formatted the same as the layers object, and it should have the exact same shape (it will error otherwise). 
   - Allowed fingers include:
     | value | meaning      |
     | ----- | ------------ |
