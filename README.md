@@ -21,12 +21,12 @@ Some fields are optional.
 * `{combos}`: (optional) object of n-key input: n-key output combinations such that when pressed together, the first produces the second
 * `{layers}`: specifies all layers on the layout. Each layer is of the form `name: <layer>`, and each layer has rows specified by a string consisting of keys delimited by any amount of whitespace. 
   - All characters are allowed, but some modifier names are reserved, being:
-    * `sft`, `shft`,
-    * `ctl`, `ctrl`,
-    * `alt`, 
+    * `sft`, `shft`
+    * `ctl`, `ctrl`
+    * `alt`
     * `mta`, `meta`
-    * `cps`, `caps`,
-    * `tb`, `tab`,
+    * `cps`, `caps`
+    * `tb`, `tab`
     * `ret`, `ent`
     * `bsp`, `bcsp`, `bksp`
     * `spc`, `spce`
@@ -40,17 +40,20 @@ Some fields are optional.
   - Any shape is allowed, but if you use a standard 3x10 shape, you may be able to elide a fingermap (more on this below). 
   - `~` is used to (on main) specify an empty char, (on shift) to use the default for what's on lowercase, and on any other layer to refer to the key on the main layer. You can escape it using a backslash `\~` to get an actual `~` key. Likewise, backslash must be escaped `\\`.
 
-`fingering`: specifies which finger presses which key. It's formatted the same as the layers object, and it should have the exact same shape (it will error otherwise). Allowed fingers include:
-  * `LP`: left pinky
-  * `LR`: left ring
-  * `LM`: left middle
-  * `LI`: left index
-  * `LT`: left thumb
-  * `RT`: right thumb
-  * `RI`: right index
-  * `RM`: right middle
-  * `RR`: right ring
-  * `RP`: right pinky
+`fingering`: specifies which finger presses which key. It's formatted the same as the layers object, and it should have the exact same shape (it will error otherwise). 
+  - Allowed fingers include:
+    | value | meaning      |
+    | ----- | ------------ |
+    | `LP`  | left pinky   |
+    | `LR`  | left ring    |
+    | `LM`  | left middle  |
+    | `LI`  | left index   |
+    | `LT`  | left thumb   |
+    | `RT`  | right thumb  |
+    | `RI`  | right index  |
+    | `RM`  | right middle |
+    | `RR`  | right ring   |
+    | `RP`  | right pinky  |
   
   - As alluded to above, you can alternatively specify a string in the `fingering` field to invoke a standard fingering:
 
