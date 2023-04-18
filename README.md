@@ -86,7 +86,6 @@ Some fields are optional.
     "combos": {
         "a b": "c d",
     },
-    "tags": ["bad", "fast"],
     "note": "the OG. Without Qwerty, none of this would be necessary.",
     "layers": {
         "main": [
