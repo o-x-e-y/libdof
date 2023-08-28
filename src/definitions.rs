@@ -2,7 +2,9 @@ use thiserror::Error;
 
 use std::{fmt::Display, str::FromStr};
 
-#[derive(Debug, Error)]
+use crate::intermediate::{Anchor, Fingering};
+
+#[derive(Debug, Error, PartialEq)]
 pub enum DefinitionError {
     #[error("Couldn't parse Finger from '{0}'")]
     FingerParseError(String),
@@ -10,6 +12,14 @@ pub enum DefinitionError {
     EmptyKeyError,
     #[error("{0}")]
     Infallible(#[from] std::convert::Infallible),
+    #[error("Can't combine keyboard type '{0}' with fingering '{1}'")]
+    UnsupportedKeyboardFingeringCombo(KeyboardType, NamedFingering),
+    #[error("The shape of '{0}' does not overlap with the provided keymap")]
+    NonOverlappingShapesError(NamedFingering),
+    #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
+    UnavailableKeyboardAnchor(KeyboardType),
+    #[error("The given fingering is unknown. Valid inputs are: angle, traditional")]
+    UnknownNamedFingering,
 }
 
 /// This should cover all fingers... for now
@@ -67,12 +77,10 @@ pub enum NamedFingering {
 
 impl Display for NamedFingering {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use NamedFingering::*;
-
         let s = match self {
-            Traditional => "traditional",
-            Angle => "angle",
-            Custom(name) => name.as_str(),
+            Self::Traditional => "traditional",
+            Self::Angle => "angle",
+            Self::Custom(name) => name.as_str(),
         };
 
         write!(f, "{s}")
@@ -83,12 +91,10 @@ impl FromStr for NamedFingering {
     type Err = std::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use NamedFingering::*;
-
         let res = match s.to_lowercase().as_str() {
-            "standard" | "traditional" => Traditional,
-            "angle" => Angle,
-            name => Custom(name.into()),
+            "standard" | "traditional" => Self::Traditional,
+            "angle" => Self::Angle,
+            name => Self::Custom(name.into()),
         };
 
         Ok(res)
@@ -193,6 +199,29 @@ impl FromStr for Key {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Shape(Vec<usize>);
+
+impl From<Vec<usize>> for Shape {
+    fn from(value: Vec<usize>) -> Self {
+        Shape(value)
+    }
+}
+
+impl Shape {
+    pub fn inner(&self) -> &Vec<usize> {
+        &self.0
+    }
+
+    pub fn into_inner(self) -> Vec<usize> {
+        self.0
+    }
+
+    pub fn row_count(&self) -> usize {
+        self.0.len()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum KeyboardType {
     Ansi,
@@ -200,6 +229,92 @@ pub enum KeyboardType {
     Ortho,
     Colstag,
     Custom(String),
+}
+
+impl KeyboardType {
+    pub fn shape(&self) -> Shape {
+        self.fingering(&NamedFingering::Traditional)
+            .unwrap()
+            .shape()
+    }
+
+    pub fn fingering_anchor(&self) -> Result<Anchor, DefinitionError> {
+        match self {
+            KeyboardType::Ansi => Ok(Anchor::new(1, 1)),
+            KeyboardType::Iso => Ok(Anchor::new(1, 1)),
+            KeyboardType::Ortho => Ok(Anchor::new(0, 0)),
+            KeyboardType::Colstag => Ok(Anchor::new(0, 0)),
+            KeyboardType::Custom(_) => {
+                Err(DefinitionError::UnavailableKeyboardAnchor(self.clone()))
+            }
+        }
+    }
+
+    pub fn fingering(
+        &self,
+        named_fingering: &NamedFingering,
+    ) -> Result<Fingering, DefinitionError> {
+        use Finger::*;
+        use KeyboardType::*;
+        use NamedFingering::*;
+
+        let fingering = match (self, &named_fingering) {
+            (Ansi, Traditional) => vec![
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+            ]
+            .into(),
+            (Ansi, Angle) => vec![
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
+                vec![LP, LR, LM, LI, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+            ]
+            .into(),
+            (Iso, Traditional) => vec![
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
+                vec![LP, LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+            ]
+            .into(),
+            (Iso, Angle) => vec![
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+            ]
+            .into(),
+            (Ortho, Traditional) => vec![
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LT, LT, LT, RT, RT, RT],
+            ]
+            .into(),
+            (Colstag, Traditional) => vec![
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LT, LT, LT, RT, RT, RT],
+            ]
+            .into(),
+            (board, &f) => {
+                return Err(DefinitionError::UnsupportedKeyboardFingeringCombo(
+                    board.clone(),
+                    f.clone(),
+                ))
+            }
+        };
+
+        Ok(fingering)
+    }
 }
 
 impl Display for KeyboardType {
