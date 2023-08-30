@@ -33,17 +33,24 @@ pub struct Dof {
 impl TryFrom<DofIntermediate> for Dof {
     type Error = DofError;
 
-    fn try_from(inter: DofIntermediate) -> Result<Self, Self::Error> {
+    fn try_from(mut inter: DofIntermediate) -> Result<Self, Self::Error> {
         let main_layer = inter.main_layer()?;
 
         inter.validate_layers(main_layer)?;
         inter.validate_layer_shapes(main_layer)?;
 
-        let explicit_fingering = inter.explicit_fingering(inter.main_layer()?)?;
-        let implicit_fingering = match inter.fingering {
+        let explicit_fingering = inter.explicit_fingering(main_layer)?;
+        let implicit_fingering = match inter.fingering.clone() {
             ParsedFingering::Implicit(f) => Some(f),
             _ => None,
         };
+
+        if inter.layers.get("shift").is_none() {
+            inter.layers.insert(
+                "shift".into(),
+                DofIntermediate::generate_shift_layer(main_layer),
+            );
+        }
 
         Ok(Self {
             name: inter.name,
@@ -163,9 +170,7 @@ impl TryFrom<KeyboardType> for Anchor {
             KeyboardType::Iso => Ok(Anchor::new(1, 1)),
             KeyboardType::Ortho => Ok(Anchor::new(0, 0)),
             KeyboardType::Colstag => Ok(Anchor::new(0, 0)),
-            KeyboardType::Custom(_) => {
-                Err(DofErrorInner::UnavailableKeyboardAnchor(value).into())
-            }
+            KeyboardType::Custom(_) => Err(DofErrorInner::UnavailableKeyboardAnchor(value).into()),
         }
     }
 }
@@ -191,6 +196,14 @@ struct DofIntermediate {
 impl DofIntermediate {
     fn main_layer(&self) -> Result<&Layer, DofError> {
         self.layers.get("main").ok_or(NoMainLayer.into())
+    }
+
+    fn generate_shift_layer(main: &Layer) -> Layer {
+        main.0
+            .iter()
+            .map(|row| row.into_iter().map(|k| k.shifted()).collect::<Vec<_>>())
+            .collect::<Vec<_>>()
+            .into()
     }
 
     fn validate_layers(&self, main: &Layer) -> Result<(), DofError> {
@@ -240,7 +253,8 @@ impl DofIntermediate {
                     .fingering(named)
                     .map_err(|e| DefinitionError(e))?;
 
-                fingering.resized_fingering(self.anchor, main.shape())
+                fingering
+                    .resized_fingering(self.anchor, main.shape())
                     .map_err(|e| e.into())
             }
         }
@@ -365,57 +379,59 @@ mod tests {
                             Char('.'),
                             Char('/'),
                         ],
-                    ].into(),
+                    ]
+                    .into(),
                 ),
-                // (
-                //     "shift".into(),
-                //     Layer(vec![
-                //         vec![
-                //             Char('Q'),
-                //             Char('W'),
-                //             Char('E'),
-                //             Char('R'),
-                //             Char('T'),
-                //             Char('Y'),
-                //             Char('U'),
-                //             Char('I'),
-                //             Char('O'),
-                //             Char('P'),
-                //         ],
-                //         vec![
-                //             Char('A'),
-                //             Char('S'),
-                //             Char('D'),
-                //             Char('F'),
-                //             Char('G'),
-                //             Char('H'),
-                //             Char('J'),
-                //             Char('K'),
-                //             Char('L'),
-                //             Char(':'),
-                //             Char('\"'),
-                //         ],
-                //         vec![
-                //             Char('Z'),
-                //             Char('X'),
-                //             Char('C'),
-                //             Char('V'),
-                //             Char('B'),
-                //             Char('N'),
-                //             Char('M'),
-                //             Char('<'),
-                //             Char('>'),
-                //             Char('?'),
-                //         ],
-                //     ]),
-                // ),
+                (
+                    "shift".into(),
+                    Layer(vec![
+                        vec![
+                            Char('Q'),
+                            Char('W'),
+                            Char('E'),
+                            Char('R'),
+                            Char('T'),
+                            Char('Y'),
+                            Char('U'),
+                            Char('I'),
+                            Char('O'),
+                            Char('P'),
+                        ],
+                        vec![
+                            Char('A'),
+                            Char('S'),
+                            Char('D'),
+                            Char('F'),
+                            Char('G'),
+                            Char('H'),
+                            Char('J'),
+                            Char('K'),
+                            Char('L'),
+                            Char(':'),
+                            Char('\"'),
+                        ],
+                        vec![
+                            Char('Z'),
+                            Char('X'),
+                            Char('C'),
+                            Char('V'),
+                            Char('B'),
+                            Char('N'),
+                            Char('M'),
+                            Char('<'),
+                            Char('>'),
+                            Char('?'),
+                        ],
+                    ]),
+                ),
             ]),
             fingering: {
                 vec![
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
                     vec![LR, LM, LI, LI, LI, RI, RI, RM, RR, RP],
-                ].into()
+                ]
+                .into()
             },
             fingering_name: Some(NamedFingering::Angle),
         };

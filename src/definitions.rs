@@ -128,6 +128,48 @@ pub enum Key {
     Layer { name: String },
 }
 
+impl Key {
+    pub fn shifted(&self) -> Self {
+        use Key::*;
+
+        match self {
+            Char(c) => match c {
+                '`' => Char('~'),
+                '1' => Char('!'),
+                '2' => Char('@'),
+                '3' => Char('#'),
+                '4' => Char('$'),
+                '5' => Char('%'),
+                '6' => Char('^'),
+                '7' => Char('*'),
+                '9' => Char('('),
+                '0' => Char(')'),
+                '[' => Char('{'),
+                ']' => Char('}'),
+                '<' => Char('>'),
+                '\'' => Char('"'),
+                ',' => Char('<'),
+                '.' => Char('>'),
+                ';' => Char(':'),
+                '/' => Char('?'),
+                '=' => Char('+'),
+                '-' => Char('_'),
+                '\\' => Char('|'),
+                c => {
+                    let mut upper = c.to_uppercase();
+                    if upper.len() == 1 {
+                        Char(upper.next().unwrap())
+                    } else {
+                        Transparent
+                    }
+                }
+            },
+            Special(_) => Transparent,
+            k => k.clone(),
+        }
+    }
+}
+
 impl Display for Key {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use Key::*;
@@ -136,7 +178,10 @@ impl Display for Key {
         let s = match self {
             Empty => "~".into(),
             Transparent => "*".into(),
-            Char(c) => String::from(*c),
+            Char(c) => match c {
+                n @ ('~' | '*') => format!("\\{n}"),
+                n => String::from(*n),
+            },
             Special(s) => match s {
                 Esc => "esc".into(),
                 Repeat => "rpt".into(),
