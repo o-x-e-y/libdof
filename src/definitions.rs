@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use std::{fmt::Display, str::FromStr};
 
-use crate::intermediate::{Anchor, Fingering};
+use crate::Fingering;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum DefinitionError {
@@ -16,8 +16,6 @@ pub enum DefinitionError {
     UnsupportedKeyboardFingeringCombo(KeyboardType, NamedFingering),
     #[error("The shape of '{0}' does not overlap with the provided keymap")]
     NonOverlappingShapesError(NamedFingering),
-    #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
-    UnavailableKeyboardAnchor(KeyboardType),
     #[error("The given fingering is unknown. Valid inputs are: angle, traditional")]
     UnknownNamedFingering,
 }
@@ -236,18 +234,6 @@ impl KeyboardType {
         self.fingering(&NamedFingering::Traditional)
             .unwrap()
             .shape()
-    }
-
-    pub fn fingering_anchor(&self) -> Result<Anchor, DefinitionError> {
-        match self {
-            KeyboardType::Ansi => Ok(Anchor::new(1, 1)),
-            KeyboardType::Iso => Ok(Anchor::new(1, 1)),
-            KeyboardType::Ortho => Ok(Anchor::new(0, 0)),
-            KeyboardType::Colstag => Ok(Anchor::new(0, 0)),
-            KeyboardType::Custom(_) => {
-                Err(DefinitionError::UnavailableKeyboardAnchor(self.clone()))
-            }
-        }
     }
 
     pub fn fingering(
