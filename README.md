@@ -10,11 +10,11 @@ board: keyboard type the layout is made for. Any value is allowed, but a few val
   * ortho
   * colstag
   
-(optional) date: date the layout was created. 
-(optional) [tags]: array of strings containing relevant tags the layout could have.
-(optional) note: string containing some of the author's thoughts.
-(optional) [alt_fingerings]: array of 2-character combinations that are intended to be alted.
-(optional) {combos}: object of n-character: n-character combinations that convert into each other when pressed together.
+(optional) `date`: date the layout was created. 
+(optional) `[tags]`: array of strings containing relevant tags the layout could have.
+(optional) `note`: string containing some of the author's thoughts.
+(optional) `[alt_fingerings]`: array of 2-character combinations that are intended to be alted.
+(optional) `{combos}`: object of n-character: n-character combinations that convert into each other when pressed together.
 {layers}: specifies all layers on the layout. They're of the form of name: <layer>, and each layer has rows specified by a string consisting of keys delimited by any amount of whitespace. All characters are allowed, but some modifier names are reserved, being:
   * sft, shft,
   * ctl, ctrl,
