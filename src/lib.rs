@@ -12,7 +12,7 @@ use definitions::*;
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "DofIntermediate")]
+#[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
 pub struct Dof {
     name: String,
     authors: Option<Vec<String>>,
@@ -28,6 +28,7 @@ pub struct Dof {
     fingering: Fingering,
     #[serde_as(as = "Option<DisplayFromStr>")]
     fingering_name: Option<NamedFingering>,
+    has_generated_shift: bool,
 }
 
 impl TryFrom<DofIntermediate> for Dof {
@@ -45,12 +46,15 @@ impl TryFrom<DofIntermediate> for Dof {
             _ => None,
         };
 
-        if inter.layers.get("shift").is_none() {
+        let has_generated_shift = if inter.layers.get("shift").is_none() {
             inter.layers.insert(
                 "shift".into(),
                 DofIntermediate::generate_shift_layer(main_layer),
             );
-        }
+            true
+        } else {
+            false
+        };
 
         Ok(Self {
             name: inter.name,
@@ -62,7 +66,39 @@ impl TryFrom<DofIntermediate> for Dof {
             anchor: inter.anchor,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
+            has_generated_shift,
         })
+    }
+}
+
+impl Into<DofIntermediate> for Dof {
+    fn into(mut self) -> DofIntermediate {
+        if self.has_generated_shift {
+            self.layers.remove("shift");
+        }
+        if let Some(fingering_name) = self.fingering_name {
+            DofIntermediate {
+                name: self.name,
+                authors: self.authors,
+                board: self.board,
+                year: self.year,
+                notes: self.notes,
+                layers: self.layers,
+                anchor: self.anchor,
+                fingering: ParsedFingering::Implicit(fingering_name),
+            }
+        } else {
+            DofIntermediate {
+                name: self.name,
+                authors: self.authors,
+                board: self.board,
+                year: self.year,
+                notes: self.notes,
+                layers: self.layers,
+                anchor: self.anchor,
+                fingering: ParsedFingering::Explicit(self.fingering),
+            }
+        }
     }
 }
 
@@ -434,6 +470,7 @@ mod tests {
                 .into()
             },
             fingering_name: Some(NamedFingering::Angle),
+            has_generated_shift: true
         };
 
         assert_eq!(d, d_manual);
