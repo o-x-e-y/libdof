@@ -31,6 +31,54 @@ pub struct Dof {
     has_generated_shift: bool,
 }
 
+impl Dof {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn authors(&self) -> Option<&Vec<String>> {
+        self.authors.as_ref()
+    }
+
+    pub fn board(&self) -> &KeyboardType {
+        &self.board
+    }
+
+    pub fn year(&self) -> Option<u32> {
+        self.year
+    }
+
+    pub fn notes(&self) -> Option<&str> {
+        self.notes.as_deref()
+    }
+
+    pub fn layers(&self) -> &BTreeMap<String, Layer> {
+        &self.layers
+    }
+
+    pub fn anchor(&self) -> Anchor {
+        self.anchor
+    }
+
+    pub fn fingering(&self) -> &Fingering {
+        &self.fingering
+    }
+
+    pub fn fingering_name(&self) -> Option<&NamedFingering> {
+        self.fingering_name.as_ref()
+    }
+
+    /// This function is infallible if you serialized into Dof.
+    pub fn main_layer(&self) -> Option<&Layer> {
+        self.layers.get("main")
+    }
+
+    /// This function is infallible if you serialized into Dof.
+    pub fn shift_layer(&self) -> Option<&Layer> {
+        self.layers.get("shift")
+    }
+}
+
 impl TryFrom<DofIntermediate> for Dof {
     type Error = DofError;
 
@@ -157,13 +205,13 @@ impl Fingering {
 
                     match row.len() >= len {
                         true => Ok(row.to_vec()),
-                        false => Err(DofErrorInner::LayoutDoesntFit.into()),
+                        false => Err(LayoutDoesntFit.into()),
                     }
                 })
                 .collect::<Result<Vec<_>, DofError>>()
                 .map(Into::into)
         } else {
-            Err(DofErrorInner::LayoutDoesntFit.into())
+            Err(LayoutDoesntFit.into())
         }
     }
 }
@@ -206,7 +254,7 @@ impl TryFrom<KeyboardType> for Anchor {
             KeyboardType::Iso => Ok(Anchor::new(1, 1)),
             KeyboardType::Ortho => Ok(Anchor::new(0, 0)),
             KeyboardType::Colstag => Ok(Anchor::new(0, 0)),
-            KeyboardType::Custom(_) => Err(DofErrorInner::UnavailableKeyboardAnchor(value).into()),
+            KeyboardType::Custom(_) => Err(UnavailableKeyboardAnchor(value).into()),
         }
     }
 }
@@ -318,7 +366,7 @@ mod tests {
 
         let v = Dof::try_from(minimal_test);
 
-        assert_eq!(v, Err(DofError::from(DofErrorInner::NoMainLayer)));
+        assert_eq!(v, Err(DofError::from(NoMainLayer)));
     }
 
     #[test]
@@ -470,7 +518,7 @@ mod tests {
                 .into()
             },
             fingering_name: Some(NamedFingering::Angle),
-            has_generated_shift: true
+            has_generated_shift: true,
         };
 
         assert_eq!(d, d_manual);
