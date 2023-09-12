@@ -1,0 +1,38 @@
+{
+    "name": "Qwerty",
+    "authors": ["Christopher Latham Sholes"],
+    "board": "ansi",
+    "year": 1878,
+    "notes": "the OG. Without Qwerty, none of this would be necessary.",
+    "anchor": [1, 1],
+    "layers": {
+        "main": [
+            "` 1 2 3 4 5  6 7 8 9 0 - = bsp",
+            "tb q w e r t  y u i o p [ ] \\",
+            "cps a s d f g  h j k l ; ' ret",
+            "shft z x c v b  n m , . / shft",
+            "~ ~ ~ ~      spc     altgr ~ ~"
+        ],
+        "shift": [
+            "\\~ ! @ # $ %  ^ & \\* ( ) _ + bsp",
+            "tab  Q W E R T  Y U   I O P { } |",
+            "caps  A S D F G  H J   K L : \" ent",
+            "sft    Z X C V B  N M   < > ? shft",
+            "~ ~ ~ ~        spc     altgr ~ ~"
+        ],
+        "altgr": [
+            "* * * * * *  * * * * * * * bsp",
+            "tb * * * * *  * ü * ö * * * *",
+            "cps ä * * * *  * * * * * * ret",
+            "shft * * * * *  * * * * * shft",
+            "~ ~ ~ ~      spc     * ~ ~"
+        ]
+    },
+    "fingering": [
+        "0  0  1  2  3  3   6  6  7  8  9  9  9  9",
+        "LP LP LR LM LI LI  RI RI RM RR RP RP RP RP",
+        "LP LP LR LM LI LI  RI RI RM RR RP RP RP",
+        "LP LR LM LI LI LI  RI RI RM RR RP RP",
+        "LP  LP  LT  LT    LT    RT  RT  RP"
+    ]
+}
