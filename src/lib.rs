@@ -349,8 +349,6 @@ impl DofIntermediate {
 mod tests {
     use super::*;
 
-    use serde_json::json;
-
     #[test]
     fn no_main_layer() {
         let minimal_test = DofIntermediate {
@@ -371,12 +369,7 @@ mod tests {
 
     #[test]
     fn parse_minimal() {
-        let minimal_json = json!({
-            "name": "Qwerty",
-            "board": "ansi",
-            "layers": {},
-            "fingering": "angle"
-        });
+        let minimal_json = include_str!("../example_dofs/minimal_parsable.json");
 
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
@@ -389,7 +382,7 @@ mod tests {
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
         };
 
-        let dof_minimal = serde_json::from_value::<DofIntermediate>(minimal_json.clone())
+        let dof_minimal = serde_json::from_str::<DofIntermediate>(minimal_json)
             .expect("couldn't parse implicit json");
 
         assert_eq!(dof_minimal, minimal_test);
@@ -400,20 +393,9 @@ mod tests {
         use Finger::*;
         use Key::*;
 
-        let minimal_json = json!({
-            "name": "Qwerty",
-            "board": "ansi",
-            "layers": {
-                "main": [
-                    "q w e r t  y u i o p  ",
-                    "a s d f g  h j k l ; '",
-                    "z x c v b  n m , . /  ",
-                ]
-            },
-            "fingering": "angle"
-        });
+        let minimal_json = include_str!("../example_dofs/minimal_valid.json");
 
-        let d = serde_json::from_value::<Dof>(minimal_json).expect("Couldn't serialize as Dof");
+        let d = serde_json::from_str::<Dof>(minimal_json).expect("Couldn't serialize as Dof");
 
         let d_manual = Dof {
             name: "Qwerty".into(),
@@ -530,46 +512,9 @@ mod tests {
 
     #[test]
     fn maximal_succesful() {
-        let maximal_json = json!({
-            "name": "Qwerty",
-            "authors": ["Christopher Latham Sholes"],
-            "board": "ansi",
-            "year": 1878,
-            "notes": "the OG. Without Qwerty, none of this would be necessary.",
-            "anchor": [0, 0],
-            "layers": {
-                "main": [
-                    "` 1 2 3 4 5  6 7 8 9 0 - = bsp",
-                    "tb q w e r t  y u i o p [ ] \\",
-                    "cps a s d f g  h j k l ; ' ret",
-                    "shft z x c v b  n m , . / shft",
-                    "~ ~ ~ ~      spc     altgr ~ ~"
-                ],
-                "shift": [
-                    "\\~ ! @ # $ %  ^ & \\* ( ) _ + bsp",
-                    "tab  Q W E R T  Y U   I O P { } |",
-                    "caps  A S D F G  H J   K L : \" ent",
-                    "*      Z X C V B  N M   < > ? shft",
-                    "~ ~ ~ ~        spc     altgr ~ ~"
-                ],
-                "altgr": [
-                    "` * * * * *  * * * * * * * bsp",
-                    "tb * * * * *  * ü * ö * * * *",
-                    "cps ä * * * *  * * * * * * ret",
-                    "shft * * * * *  * * * * * shft",
-                    "~ ~ ~ ~      spc     * ~ ~"
-                ]
-            },
-            "fingering": [
-                "0  0  1  2  3  3   6  6  7  8  9  9  9  9",
-                "LP LP LR LM LI LI  RI RI RM RR RP RP RP RP",
-                "LP LP LR LM LI LI  RI RI RM RR RP RP RP",
-                "LP LR LM LI LI LI  RI RI RM RR RP RP",
-                "LP  LP  LT  LT    LT    RT  RT  RP"
-            ]
-        });
+        let maximal_json = include_str!("../example_dofs/minimal_valid.json");
 
-        serde_json::from_value::<Dof>(maximal_json).expect("Couldn't parse or validate Dof");
+        serde_json::from_str::<Dof>(maximal_json).expect("Couldn't parse or validate Dof");
     }
 
     #[test]
@@ -596,37 +541,7 @@ mod tests {
         use Key::*;
         use SpecialKey::*;
 
-        let maximal_json = json!({
-            "name": "Qwerty",
-            "authors": ["Christopher Latham Sholes"],
-            "board": "ansi",
-            "year": 1878,
-            "notes": "the OG. Without Qwerty, none of this would be necessary.",
-            "anchor": [1, 1],
-            "layers": {
-                "main": [
-                    "` 1 2 3 4 5  6 7 8 9 0 - = bsp",
-                    "tb q w e r t  y u i o p [ ] \\",
-                    "cps a s d f g  h j k l ; ' ret",
-                    "shft z x c v b  n m , . / shft",
-                    "~ ~ ~ ~       spc       altgr ~ ~"
-                ],
-                "shift": [
-                    "\\~ ! @ # $ %  ^ & \\* ( ) _ + bsp",
-                    "tab  Q W E R T  Y U   I O P { } |",
-                    "caps  A S D F G  H J   K L : \" ent",
-                    "*      Z X C V B  N M   < > ? shft",
-                    "~ ~ ~ ~         spc    saltgr ~ ~"
-                ]
-            },
-            "fingering": [
-                "0  0  1  2  3  3   6  6  7  8  9  9  9  9  9",
-                "LP LP LR LM LI LI  RI RI RM RR RP RP RP RP",
-                "LP LP LR LM LI LI  RI RI RM RR RP RP RP",
-                "LP LR LM LI LI LI  RI RI RM RR RP RP",
-                "LP  LP  LT  LT    LT    RT  RT  RP"
-            ]
-        });
+        let maximal_json = include_str!("../example_dofs/maximal.json");
 
         let maximal_test = DofIntermediate {
             name: "Qwerty".into(),
@@ -765,7 +680,7 @@ mod tests {
                             Special(Enter),
                         ],
                         vec![
-                            Transparent,
+                            Special(Shift),
                             Char('Z'),
                             Char('X'),
                             Char('C'),
@@ -785,8 +700,84 @@ mod tests {
                             Empty,
                             Special(Space),
                             Layer {
-                                name: "saltgr".into(),
+                                name: "altgr".into(),
                             },
+                            Empty,
+                            Empty,
+                        ],
+                    ]),
+                ),
+                (
+                    "altgr".into(),
+                    crate::Layer::from(vec![
+                        vec![
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Special(Backspace),
+                        ],
+                        vec![
+                            Special(Tab),
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Char('ü'),
+                            Transparent,
+                            Char('ö'),
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                        ],
+                        vec![
+                            Special(Caps),
+                            Char('ä'),
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Special(Enter),
+                        ],
+                        vec![
+                            Special(Shift),
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Transparent,
+                            Special(Shift),
+                        ],
+                        vec![
+                            Empty,
+                            Empty,
+                            Empty,
+                            Empty,
+                            Special(Space),
+                            Transparent,
                             Empty,
                             Empty,
                         ],
@@ -795,7 +786,7 @@ mod tests {
             ]),
             fingering: {
                 ParsedFingering::Explicit(Fingering::from(vec![
-                    vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP, RP],
+                    vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                     vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                     vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
                     vec![LP, LR, LM, LI, LI, LI, RI, RI, RM, RR, RP, RP],
@@ -804,7 +795,7 @@ mod tests {
             },
         };
 
-        let dof_maximal = serde_json::from_value::<DofIntermediate>(maximal_json)
+        let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)
             .expect("couldn't parse explicit json");
 
         assert_eq!(dof_maximal, maximal_test);
