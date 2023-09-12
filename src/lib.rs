@@ -1,5 +1,6 @@
 pub mod definitions;
 pub mod macros;
+pub mod modify_dof;
 
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};
@@ -68,14 +69,20 @@ impl Dof {
         self.fingering_name.as_ref()
     }
 
-    /// This function is infallible if you serialized into Dof.
+    /// This function can be assumed to be infallible if you serialized into Dof as validation
+    /// will have prevented you to create a Dof without a shift layer
     pub fn main_layer(&self) -> Option<&Layer> {
         self.layers.get("main")
     }
 
-    /// This function is infallible if you serialized into Dof.
+    /// This function can be assumed to be infallible if you serialized into Dof as validation
+    /// will have prevented you to create a Dof without a shift layer
     pub fn shift_layer(&self) -> Option<&Layer> {
         self.layers.get("shift")
+    }
+
+    pub fn layer(&self, name: &str) -> Option<&Layer> {
+        self.layers.get(name)
     }
 }
 
