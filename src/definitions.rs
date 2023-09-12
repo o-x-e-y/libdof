@@ -157,7 +157,7 @@ impl Key {
                 '\\' => Char('|'),
                 c => {
                     let mut upper = c.to_uppercase();
-                    if upper.len() == 1 {
+                    if upper.clone().count() == 1 {
                         Char(upper.next().unwrap())
                     } else {
                         Transparent
@@ -210,7 +210,7 @@ impl FromStr for Key {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Key::*;
         use SpecialKey::*;
-        match s.len() {
+        match s.chars().count() {
             0 => Err(DefinitionError::EmptyKeyError),
             1 => match s {
                 "~" => Ok(Empty),
