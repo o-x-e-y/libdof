@@ -26,13 +26,15 @@ board: keyboard type the layout is made for. Any value is allowed, but a few val
   * bsp, bcsp, bksp,
   * spc, spce,
   * rpt, rept.
-  
-Any other 2+ letter combination refers to another layer.
+
+You can lead any name with `@` to make it refer to a layer, for example `@altgr` would refer to a layer called altgr. Any other letter combination will refer to a word, so `altgr` contrary to `@altgr` will be interpreted as a key that outputs `altgr` in one stroke. You can escape the `@` for a layer with `\\`, which allows a word key to lead with a `@`. If you want a word key that contains reserved names like `shft`, you can lead with a `#`, which you can also escape using a backslash.
+
 All layer names are allowed though two are reserved, being:
   * main (mandatory)
   * shift
   
 While main is mandatory to be filled, shift can be elided and will follow qwerty's capitalization scheme. Any shape is allowed, but if you use a standard 3x10 shape, you may be able to elide a fingermap (more on this below). '~' is used to (on main) specify an empty character and on any other layer (including shift) to refer to the key on the base layer. You can escape it like so \~, as you do with \\ to get an actual ~ key.
+
 
 fingering: specifies which finger presses which key. It's formatted the same as the layers object, and it should have the exact same shape (it will error otherwise):
   * LP or 0: left pinky

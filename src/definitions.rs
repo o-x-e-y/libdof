@@ -124,6 +124,7 @@ pub enum Key {
     Empty,
     Transparent,
     Char(char),
+    Word(String),
     Special(SpecialKey),
     Layer { name: String },
 }
@@ -160,7 +161,7 @@ impl Key {
                     if upper.clone().count() == 1 {
                         Char(upper.next().unwrap())
                     } else {
-                        Transparent
+                        Word(upper.to_string())
                     }
                 }
             },
@@ -182,6 +183,7 @@ impl Display for Key {
                 n @ ('~' | '*') => format!("\\{n}"),
                 n => String::from(*n),
             },
+            Word(w) => w.clone(),
             Special(s) => match s {
                 Esc => "esc".into(),
                 Repeat => "rpt".into(),
@@ -236,7 +238,13 @@ impl FromStr for Key {
                 "fn" => Ok(Special(Fn)),
                 "backspace" | "bksp" | "bcsp" | "bsp" => Ok(Special(Backspace)),
                 "del" => Ok(Special(Del)),
-                _ => Ok(Layer { name: s.into() }),
+                _ if s.starts_with("@") => Ok(Layer {
+                    name: s.chars().skip(1).collect(),
+                }),
+                _ if s.starts_with("#") || s.starts_with("\\#") || s.starts_with("\\@") => {
+                    Ok(Word(s.chars().skip(1).collect()))
+                }
+                _ => Ok(Word(s.into())),
             },
         }
     }
