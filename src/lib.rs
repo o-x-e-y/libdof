@@ -543,6 +543,16 @@ mod tests {
     }
 
     #[test]
+    fn buggy() {
+        let buggy_json = include_str!("../example_dofs/buggy.json");
+
+        let buggy = serde_json::from_str::<Dof>(buggy_json)
+            .expect("couldn't parse buggy json");
+
+        assert_eq!(buggy.layers.len(), 4)
+    }
+
+    #[test]
     fn parse_maximal() {
         use Finger::*;
         use Key::*;

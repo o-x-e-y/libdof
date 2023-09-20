@@ -1,0 +1,34 @@
+{
+    "name": "Buggy",
+    "authors": ["Flarefin"],
+    "board": "buggy",
+    "year": 2022,
+    "notes": "2-layer layout with 7 keys on each hand",
+    "layers": {
+        "main": [
+            "~ l d y  m o u ~",
+            "n r t s  h a i e",
+            "@l2 spc  sft ~  "
+        ],
+        "l2": [
+            "~ x v g  k q , ~",
+            "p w b c  f z . j",
+            "  * spc  @l2s ~ "
+        ],
+        "shift": [
+            "~ L D Y  M O U ~",
+            "N R T S  H A I E",
+            "@l2s spc * ~  "
+        ],
+        "l2s": [
+            "~ X V G  K Q < ~",
+            "P W B C  F Z > J",
+            "  * spc  * ~    "
+        ]
+    },
+    "fingering": [
+        "0 1 2 3  6 7 8 9",
+        "0 1 2 3  6 7 8 9",
+        "    4 4  5 5    "
+    ]
+}
