@@ -4,6 +4,9 @@ use std::{fmt::Display, str::FromStr};
 
 use crate::Fingering;
 
+// #[cfg(feature="pyo3")]
+// use pyo3::prelude::*;
+
 #[derive(Debug, Error, PartialEq)]
 pub enum DefinitionError {
     #[error("Couldn't parse Finger from '{0}'")]
@@ -273,6 +276,7 @@ impl Shape {
     }
 }
 
+// #[cfg_attr(feature="pyo3", pyclass)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum KeyboardType {
     Ansi,

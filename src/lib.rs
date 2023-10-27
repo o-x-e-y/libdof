@@ -2,6 +2,9 @@ pub mod definitions;
 pub mod macros;
 pub mod modify_dof;
 
+// #[cfg(feature="pyo3")]
+// mod lib_pyo3;
+
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
@@ -10,11 +13,16 @@ use std::collections::BTreeMap;
 
 use definitions::*;
 
+#[cfg(feature="pyo3")]
+use pyo3::prelude::*;
+
+#[cfg_attr(feature="pyo3", pyclass)]
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
 pub struct Dof {
+    #[pyo3(get)]
     name: String,
     authors: Option<Vec<String>>,
     #[serde_as(as = "DisplayFromStr")]
@@ -32,13 +40,36 @@ pub struct Dof {
     has_generated_shift: bool,
 }
 
+struct JsonError(serde_json::Error);
+
+impl From<JsonError> for PyErr {
+    fn from(error: JsonError) -> Self {
+        pyo3::exceptions::PyValueError::new_err(error.0.to_string())
+    }
+}
+
+impl From<serde_json::Error> for JsonError {
+    fn from(other: serde_json::Error) -> Self {
+        Self(other)
+    }
+}
+
+#[cfg(feature="pyo3")]
+#[pymethods]
+impl Dof {
+    pub fn parse(json: &str) -> Result<Self, JsonError> {
+        let x = serde_json::from_str::<Self>(json)?;
+        Ok(x)
+    }
+}
+
 impl Dof {
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    pub fn authors(&self) -> Option<&Vec<String>> {
-        self.authors.as_ref()
+    pub fn authors(&self) -> Option<&[String]> {
+        self.authors.as_deref()
     }
 
     pub fn board(&self) -> &KeyboardType {
@@ -351,6 +382,15 @@ impl DofIntermediate {
         }
     }
 }
+
+#[cfg_attr(feature="pyo3", pymodule)]
+fn libdof(_py: Python, m: &PyModule) -> PyResult<()> {
+    // m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    m.add_class::<Dof>()?;
+
+    Ok(())
+}
+
 
 #[cfg(test)]
 mod tests {
