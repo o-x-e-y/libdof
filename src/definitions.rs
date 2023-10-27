@@ -354,6 +354,10 @@ impl KeyboardType {
 
         Ok(fingering)
     }
+
+    pub fn is_custom(&self) -> bool {
+        matches!(self, Self::Custom(_))
+    }
 }
 
 impl Display for KeyboardType {

@@ -111,6 +111,10 @@ impl TryFrom<DofIntermediate> for Dof {
             false
         };
 
+        if inter.board.is_custom() {
+            inter.anchor = Anchor(0, 0);
+        }
+
         Ok(Self {
             name: inter.name,
             authors: inter.authors,
@@ -549,7 +553,8 @@ mod tests {
         let buggy = serde_json::from_str::<Dof>(buggy_json)
             .expect("couldn't parse buggy json");
 
-        assert_eq!(buggy.layers.len(), 4)
+        assert_eq!(buggy.layers.len(), 4);
+        assert_eq!(buggy.anchor, Anchor(0, 0));
     }
 
     #[test]

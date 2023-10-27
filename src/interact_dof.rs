@@ -49,6 +49,26 @@ pub enum DofInteractionError<'a> {
 use DofInteractionError as DIErr;
 
 impl Dof {
+    pub fn get<'a>(&'a self, match_key: impl Into<Key>) -> Vec<KeyPos<'a>> {
+        let match_key = match_key.into();
+        let mut res = Vec::new();
+
+        for (name, layer) in self.layers.iter() {
+            for (i, row) in layer.0.iter().enumerate() {
+                for (j, key) in row.iter().enumerate() {
+                    if key == &match_key {
+                        let i = i+self.anchor.0 as usize;
+                        let j = j+self.anchor.1 as usize;
+                        res.push((name.as_str(), (i, j)).into());
+                    }
+                }
+            }
+        }
+
+        res
+    }
+
+
     /// very bulky way to swap two keys on a layout. Do not use this anywhere where performance is
     /// even remotely important.
     pub fn swap<'a>(
@@ -137,6 +157,23 @@ mod tests {
     use super::*;
 
     static MINIMAL: &str = include_str!("../example_dofs/minimal_valid.json");
+
+    #[test]
+    fn get() {
+        let buggy = include_str!("../example_dofs/buggy.json");
+        let buggy_json = serde_json::from_str::<Dof>(buggy).expect("couldn't parse json");
+
+        assert_eq!(buggy_json.get(Key::Char('a')), [("main", (1, 5)).into()]);
+        assert_eq!(
+            buggy_json.get(Key::Transparent),
+            [
+                ("l2", (2, 0)).into(),
+                ("l2s", (2, 0)).into(),
+                ("l2s", (2, 2)).into(),
+                ("shift", (2, 2)).into()
+            ]
+        );
+    }
 
     #[test]
     fn swap_main_layer_same_row() {
