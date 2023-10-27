@@ -1,6 +1,6 @@
 pub mod definitions;
 pub mod macros;
-pub mod modify_dof;
+pub mod interact_dof;
 
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};

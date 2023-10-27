@@ -39,14 +39,14 @@ impl<'a> From<(&'a str, (usize, usize))> for KeyPos<'a> {
 }
 
 #[derive(Debug, Error, Clone)]
-pub enum DofModificationError<'a> {
+pub enum DofInteractionError<'a> {
     #[error("the provided layer name '{0}' is invalid")]
     LayerDoesntExist(&'a str),
     #[error("the given position ({0}, {1}) is not available on the keyboard")]
     InvalidPosition(u8, u8),
 }
 
-use DofModificationError as DMErr;
+use DofInteractionError as DIErr;
 
 impl Dof {
     /// very bulky way to swap two keys on a layout. Do not use this anywhere where performance is
@@ -55,7 +55,7 @@ impl Dof {
         &'a mut self,
         keypos1: impl Into<KeyPos<'a>>,
         keypos2: impl Into<KeyPos<'a>>,
-    ) -> Result<(), DofModificationError> {
+    ) -> Result<(), DofInteractionError> {
         let KeyPos {
             layer: layer_name1,
             pos: pos1,
@@ -73,21 +73,21 @@ impl Dof {
             let layer = self
                 .layers
                 .remove(layer_name1)
-                .ok_or(DMErr::LayerDoesntExist(layer_name1))?;
+                .ok_or(DIErr::LayerDoesntExist(layer_name1))?;
 
             let char1 = layer
                 .0
                 .get(pos1.row)
-                .ok_or(DMErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?
+                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?
                 .get(pos1.col)
-                .ok_or(DMErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
+                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
 
             let char2 = layer
                 .0
                 .get(pos2.row)
-                .ok_or(DMErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?
+                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?
                 .get(pos2.col)
-                .ok_or(DMErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
+                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
 
             let char1 = char1 as *const _ as *mut Key;
             let char2 = char2 as *const _ as *mut Key;
@@ -101,26 +101,26 @@ impl Dof {
             let mut layer1 = self
                 .layers
                 .remove(layer_name1)
-                .ok_or(DMErr::LayerDoesntExist(layer_name1))?;
+                .ok_or(DIErr::LayerDoesntExist(layer_name1))?;
 
             let mut layer2 = self
                 .layers
                 .remove(layer_name2)
-                .ok_or(DMErr::LayerDoesntExist(layer_name2))?;
+                .ok_or(DIErr::LayerDoesntExist(layer_name2))?;
 
             let char1 = layer1
                 .0
                 .get_mut(pos1.row)
-                .ok_or(DMErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?
+                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?
                 .get_mut(pos1.col)
-                .ok_or(DMErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
+                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
 
             let char2 = layer2
                 .0
                 .get_mut(pos2.row)
-                .ok_or(DMErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?
+                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?
                 .get_mut(pos2.col)
-                .ok_or(DMErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
+                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
 
             std::mem::swap(char1, char2);
 
@@ -136,10 +136,11 @@ impl Dof {
 mod tests {
     use super::*;
 
+    static MINIMAL: &str = include_str!("../example_dofs/minimal_valid.json");
+
     #[test]
     fn swap_main_layer_same_row() {
-        let minimal_str = include_str!("../example_dofs/minimal_valid.json");
-        let minimal_json = serde_json::from_str::<Dof>(minimal_str).expect("couldn't parse json");
+        let minimal_json = serde_json::from_str::<Dof>(MINIMAL).expect("couldn't parse json");
 
         let mut minimal_clone = minimal_json.clone();
 
@@ -159,8 +160,7 @@ mod tests {
 
     #[test]
     fn swap_main_layer() {
-        let minimal_str = include_str!("../example_dofs/minimal_valid.json");
-        let minimal_json = serde_json::from_str::<Dof>(minimal_str).expect("couldn't parse json");
+        let minimal_json = serde_json::from_str::<Dof>(MINIMAL).expect("couldn't parse json");
 
         let mut minimal_clone = minimal_json.clone();
 
@@ -180,8 +180,7 @@ mod tests {
 
     #[test]
     fn swap_different_layers() {
-        let minimal_str = include_str!("../example_dofs/minimal_valid.json");
-        let minimal_json = serde_json::from_str::<Dof>(minimal_str).expect("couldn't parse json");
+        let minimal_json = serde_json::from_str::<Dof>(MINIMAL).expect("couldn't parse json");
 
         let mut minimal_clone = minimal_json.clone();
 
