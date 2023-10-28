@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use std::{fmt::Display, str::FromStr};
+use std::{convert::Infallible, fmt::Display, str::FromStr};
 
 use crate::Fingering;
 
@@ -207,13 +207,13 @@ impl Display for Key {
 }
 
 impl FromStr for Key {
-    type Err = DefinitionError;
+    type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Key::*;
         use SpecialKey::*;
         match s.chars().count() {
-            0 => Err(DefinitionError::EmptyKeyError),
+            0 => Ok(Empty),
             1 => match s {
                 "~" => Ok(Empty),
                 "*" => Ok(Transparent),
@@ -247,6 +247,15 @@ impl FromStr for Key {
                 _ => Ok(Word(s.into())),
             },
         }
+    }
+}
+
+impl<T> From<T> for Key
+where
+    T: AsRef<str>,
+{
+    fn from(value: T) -> Self {
+        value.as_ref().parse().unwrap()
     }
 }
 

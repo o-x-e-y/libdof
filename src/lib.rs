@@ -1,7 +1,8 @@
 pub mod definitions;
-pub mod macros;
 pub mod interact_dof;
+pub mod macros;
 
+use interact_dof::{KeyPos, Pos};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
@@ -12,7 +13,7 @@ use definitions::*;
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
 pub struct Dof {
     name: String,
@@ -30,6 +31,22 @@ pub struct Dof {
     #[serde_as(as = "Option<DisplayFromStr>")]
     fingering_name: Option<NamedFingering>,
     has_generated_shift: bool,
+    keys: Vec<DescriptiveKey>,
+}
+
+impl PartialEq for Dof {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.authors == other.authors
+            && self.board == other.board
+            && self.year == other.year
+            && self.notes == other.notes
+            && self.layers == other.layers
+            && self.anchor == other.anchor
+            && self.fingering == other.fingering
+            && self.fingering_name == other.fingering_name
+            && self.has_generated_shift == other.has_generated_shift
+    }
 }
 
 impl Dof {
@@ -84,6 +101,10 @@ impl Dof {
     pub fn layer(&self, name: &str) -> Option<&Layer> {
         self.layers.get(name)
     }
+
+    pub fn keys(&self) -> impl Iterator<Item = &DescriptiveKey> {
+        self.keys.iter()
+    }
 }
 
 impl TryFrom<DofIntermediate> for Dof {
@@ -115,6 +136,23 @@ impl TryFrom<DofIntermediate> for Dof {
             inter.anchor = Anchor(0, 0);
         }
 
+        let mut keys = Vec::<DescriptiveKey>::new();
+
+        for (name, layer) in inter.layers.iter() {
+            for (i, row) in layer.0.iter().enumerate() {
+                for (j, key) in row.iter().enumerate() {
+                    let finger = explicit_fingering.0[i][j];
+
+                    let i = i + inter.anchor.0 as usize;
+                    let j = j + inter.anchor.1 as usize;
+
+                    let key = DescriptiveKey::new(key.clone(), name.into(), i, j, finger);
+
+                    keys.push(key);
+                }
+            }
+        }
+
         Ok(Self {
             name: inter.name,
             authors: inter.authors,
@@ -126,6 +164,7 @@ impl TryFrom<DofIntermediate> for Dof {
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
             has_generated_shift,
+            keys: Vec::new(),
         })
     }
 }
@@ -270,8 +309,44 @@ impl TryFrom<KeyboardType> for Anchor {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct DescriptiveKey {
+    output: Key,
+    layer: String,
+    row: usize,
+    col: usize,
+    finger: Finger,
+}
+
+impl DescriptiveKey {
+    pub fn new(output: Key, layer: String, row: usize, col: usize, finger: Finger) -> Self {
+        Self {
+            output,
+            layer,
+            row,
+            col,
+            finger,
+        }
+    }
+
+    pub fn is_left_hand(&self) -> bool {
+        use Finger::*;
+
+        matches!(self.finger, LP | LR | LM | LI | LT)
+    }
+
+    pub fn pos(&self) -> Pos {
+        (self.row, self.col).into()
+    }
+
+    pub fn keypos<'a>(&'a self) -> KeyPos<'a> {
+        (self.layer.as_str(), (self.row, self.col)).into()
+    }
+}
+
 /// Main struct to use for parsing
 #[serde_as]
+#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct DofIntermediate {
     name: String,
@@ -512,13 +587,15 @@ mod tests {
             },
             fingering_name: Some(NamedFingering::Angle),
             has_generated_shift: true,
+            keys: Vec::new(),
         };
 
         assert_eq!(d, d_manual);
 
-        let reconvert_json = serde_json::to_value(d).expect("Couldn't reconvert to json value");
+        let reconvert_json =
+            serde_json::to_string_pretty(&d).expect("Couldn't reconvert to json value");
 
-        println!("{reconvert_json:#?}")
+        println!("{reconvert_json}")
     }
 
     #[test]
@@ -550,8 +627,7 @@ mod tests {
     fn buggy() {
         let buggy_json = include_str!("../example_dofs/buggy.json");
 
-        let buggy = serde_json::from_str::<Dof>(buggy_json)
-            .expect("couldn't parse buggy json");
+        let buggy = serde_json::from_str::<Dof>(buggy_json).expect("couldn't parse buggy json");
 
         assert_eq!(buggy.layers.len(), 4);
         assert_eq!(buggy.anchor, Anchor(0, 0));
