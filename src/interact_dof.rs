@@ -52,11 +52,11 @@ pub enum DofInteractionError<'a> {
 use DofInteractionError as DIErr;
 
 impl Dof {
-    pub fn get<'a>(&'a self, match_key: impl Into<Key>) -> Vec<KeyPos<'a>> {
-        let match_key = match_key.into();
+    pub fn get<'a>(&'a self, key: impl Into<Key>) -> Vec<KeyPos<'a>> {
+        let key = key.into();
 
         self.keys()
-            .filter(|dk| dk.output == match_key)
+            .filter(|dk| dk.output == key)
             .map(|dk| dk.keypos())
             .collect::<Vec<_>>()
     }
