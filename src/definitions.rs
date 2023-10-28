@@ -210,43 +210,7 @@ impl FromStr for Key {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Key::*;
-        use SpecialKey::*;
-        match s.chars().count() {
-            0 => Ok(Empty),
-            1 => match s {
-                "~" => Ok(Empty),
-                "*" => Ok(Transparent),
-                " " => Ok(Special(Space)),
-                "\n" => Ok(Special(Enter)),
-                "\t" => Ok(Special(Tab)),
-                _ => Ok(Char(s.chars().next().unwrap())),
-            },
-            _ => match s.to_lowercase().as_str() {
-                "\\~" => Ok(Char('~')),
-                "\\*" => Ok(Char('*')),
-                "esc" => Ok(Special(Esc)),
-                "repeat" | "rpt" => Ok(Special(Repeat)),
-                "space" | "spc" => Ok(Special(Space)),
-                "tab" | "tb" => Ok(Special(Tab)),
-                "enter" | "return" | "ret" | "ent" | "rt" => Ok(Special(Enter)),
-                "shift" | "shft" | "sft" | "st" => Ok(Special(Shift)),
-                "caps" | "cps" | "cp" => Ok(Special(Caps)),
-                "ctrl" | "ctl" | "ct" => Ok(Special(Ctrl)),
-                "alt" | "lalt" | "ralt" | "lt" => Ok(Special(Alt)),
-                "meta" | "mta" | "met" | "mt" | "super" | "sup" | "sp" => Ok(Special(Meta)),
-                "fn" => Ok(Special(Fn)),
-                "backspace" | "bksp" | "bcsp" | "bsp" => Ok(Special(Backspace)),
-                "del" => Ok(Special(Del)),
-                _ if s.starts_with("@") => Ok(Layer {
-                    name: s.chars().skip(1).collect(),
-                }),
-                _ if s.starts_with("#") || s.starts_with("\\#") || s.starts_with("\\@") => {
-                    Ok(Word(s.chars().skip(1).collect()))
-                }
-                _ => Ok(Word(s.into())),
-            },
-        }
+        Ok(s.into())
     }
 }
 
@@ -255,7 +219,46 @@ where
     T: AsRef<str>,
 {
     fn from(value: T) -> Self {
-        value.as_ref().parse().unwrap()
+        use Key::*;
+        use SpecialKey::*;
+
+        let s = value.as_ref();
+
+        match s.chars().count() {
+            0 => Empty,
+            1 => match s {
+                "~" => Empty,
+                "*" => Transparent,
+                " " => Special(Space),
+                "\n" => Special(Enter),
+                "\t" => Special(Tab),
+                _ => Char(s.chars().next().unwrap()),
+            },
+            _ => match s.to_lowercase().as_str() {
+                "\\~" => Char('~'),
+                "\\*" => Char('*'),
+                "esc" => Special(Esc),
+                "repeat" | "rpt" => Special(Repeat),
+                "space" | "spc" => Special(Space),
+                "tab" | "tb" => Special(Tab),
+                "enter" | "return" | "ret" | "ent" | "rt" => Special(Enter),
+                "shift" | "shft" | "sft" | "st" => Special(Shift),
+                "caps" | "cps" | "cp" => Special(Caps),
+                "ctrl" | "ctl" | "ct" => Special(Ctrl),
+                "alt" | "lalt" | "ralt" | "lt" => Special(Alt),
+                "meta" | "mta" | "met" | "mt" | "super" | "sup" | "sp" => Special(Meta),
+                "fn" => Special(Fn),
+                "backspace" | "bksp" | "bcsp" | "bsp" => Special(Backspace),
+                "del" => Special(Del),
+                _ if s.starts_with("@") => Layer {
+                    name: s.chars().skip(1).collect(),
+                },
+                _ if s.starts_with("#") || s.starts_with("\\#") || s.starts_with("\\@") => {
+                    Word(s.chars().skip(1).collect())
+                }
+                _ => Word(s.into()),
+            },
+        }
     }
 }
 
