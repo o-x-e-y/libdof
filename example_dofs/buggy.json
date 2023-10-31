@@ -3,7 +3,7 @@
     "authors": ["Flarefin"],
     "board": "buggy",
     "year": 2022,
-    "notes": "2-layer layout with 7 keys on each hand",
+    "description": "2-layer layout with 7 keys on each hand",
     "layers": {
         "main": [
             "~ l d y  m o u ~",

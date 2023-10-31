@@ -21,7 +21,8 @@ pub struct Dof {
     #[serde_as(as = "DisplayFromStr")]
     board: KeyboardType,
     year: Option<u32>,
-    notes: Option<String>,
+    description: Option<String>,
+    link: Option<String>,
     layers: BTreeMap<String, Layer>,
     #[serde(default = "Anchor::default")]
     anchor: Anchor,
@@ -40,7 +41,7 @@ impl PartialEq for Dof {
             && self.authors == other.authors
             && self.board == other.board
             && self.year == other.year
-            && self.notes == other.notes
+            && self.description == other.description
             && self.layers == other.layers
             && self.anchor == other.anchor
             && self.fingering == other.fingering
@@ -66,8 +67,8 @@ impl Dof {
         self.year
     }
 
-    pub fn notes(&self) -> Option<&str> {
-        self.notes.as_deref()
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
     }
 
     pub fn layers(&self) -> &BTreeMap<String, Layer> {
@@ -158,13 +159,14 @@ impl TryFrom<DofIntermediate> for Dof {
             authors: inter.authors,
             board: inter.board,
             year: inter.year,
-            notes: inter.notes,
+            description: inter.description,
+            link: inter.link,
             layers: inter.layers,
             anchor: inter.anchor,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
             has_generated_shift,
-            keys: Vec::new(),
+            keys,
         })
     }
 }
@@ -180,7 +182,8 @@ impl Into<DofIntermediate> for Dof {
                 authors: self.authors,
                 board: self.board,
                 year: self.year,
-                notes: self.notes,
+                description: self.description,
+                link: self.link,
                 layers: self.layers,
                 anchor: self.anchor,
                 fingering: ParsedFingering::Implicit(fingering_name),
@@ -191,7 +194,8 @@ impl Into<DofIntermediate> for Dof {
                 authors: self.authors,
                 board: self.board,
                 year: self.year,
-                notes: self.notes,
+                description: self.description,
+                link: self.link,
                 layers: self.layers,
                 anchor: self.anchor,
                 fingering: ParsedFingering::Explicit(self.fingering),
@@ -354,7 +358,8 @@ struct DofIntermediate {
     #[serde_as(as = "DisplayFromStr")]
     board: KeyboardType,
     year: Option<u32>,
-    notes: Option<String>,
+    description: Option<String>,
+    link: Option<String>,
     layers: BTreeMap<String, Layer>,
     #[serde(default = "Anchor::default")]
     anchor: Anchor,
@@ -442,7 +447,8 @@ mod tests {
             authors: None,
             board: KeyboardType::Ansi,
             year: None,
-            notes: None,
+            description: None,
+            link: None,
             anchor: Anchor::default(),
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
@@ -462,7 +468,8 @@ mod tests {
             authors: None,
             board: KeyboardType::Ansi,
             year: None,
-            notes: None,
+            description: None,
+            link: None,
             anchor: Anchor::default(),
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
@@ -488,7 +495,8 @@ mod tests {
             authors: None,
             board: KeyboardType::Ansi,
             year: None,
-            notes: None,
+            description: None,
+            link: None,
             anchor: Anchor::new(1, 1),
             layers: BTreeMap::from_iter([
                 (
@@ -612,7 +620,8 @@ mod tests {
             authors: None,
             board: KeyboardType::Ansi,
             year: None,
-            notes: None,
+            description: None,
+            link: None,
             anchor: Anchor::default(),
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
@@ -646,7 +655,8 @@ mod tests {
             authors: Some(vec!["Christopher Latham Sholes".into()]),
             board: KeyboardType::Ansi,
             year: Some(1878),
-            notes: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
+            description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
+            link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
             anchor: Anchor::new(1, 1),
             layers: BTreeMap::from_iter([
                 (

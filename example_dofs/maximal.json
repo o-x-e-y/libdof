@@ -3,7 +3,8 @@
     "authors": ["Christopher Latham Sholes"],
     "board": "ansi",
     "year": 1878,
-    "notes": "the OG. Without Qwerty, none of this would be necessary.",
+    "description": "the OG. Without Qwerty, none of this would be necessary.",
+    "link": "https://en.wikipedia.org/wiki/QWERTY",
     "anchor": [1, 1],
     "layers": {
         "main": [
