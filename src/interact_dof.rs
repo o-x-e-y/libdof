@@ -168,11 +168,11 @@ impl Dof {
 mod tests {
     use super::*;
 
-    static MINIMAL: &str = include_str!("../example_dofs/minimal_valid.json");
+    static MINIMAL: &str = include_str!("../example_dofs/minimal_valid.dof");
 
     #[test]
     fn get() {
-        let buggy = include_str!("../example_dofs/buggy.json");
+        let buggy = include_str!("../example_dofs/buggy.dof");
         let buggy_json = serde_json::from_str::<Dof>(buggy).expect("couldn't parse json");
 
         assert_eq!(buggy_json.get(Key::Char('a')), [("main", (1, 5)).into()]);

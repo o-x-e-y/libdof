@@ -461,7 +461,7 @@ mod tests {
 
     #[test]
     fn parse_minimal() {
-        let minimal_json = include_str!("../example_dofs/minimal_parsable.json");
+        let minimal_json = include_str!("../example_dofs/minimal_parsable.dof");
 
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
@@ -486,7 +486,7 @@ mod tests {
         use Finger::*;
         use Key::*;
 
-        let minimal_json = include_str!("../example_dofs/minimal_valid.json");
+        let minimal_json = include_str!("../example_dofs/minimal_valid.dof");
 
         let d = serde_json::from_str::<Dof>(minimal_json).expect("Couldn't serialize as Dof");
 
@@ -608,7 +608,7 @@ mod tests {
 
     #[test]
     fn maximal_succesful() {
-        let maximal_json = include_str!("../example_dofs/minimal_valid.json");
+        let maximal_json = include_str!("../example_dofs/minimal_valid.dof");
 
         serde_json::from_str::<Dof>(maximal_json).expect("Couldn't parse or validate Dof");
     }
@@ -634,7 +634,7 @@ mod tests {
 
     #[test]
     fn buggy() {
-        let buggy_json = include_str!("../example_dofs/buggy.json");
+        let buggy_json = include_str!("../example_dofs/buggy.dof");
 
         let buggy = serde_json::from_str::<Dof>(buggy_json).expect("couldn't parse buggy json");
 
@@ -648,7 +648,7 @@ mod tests {
         use Key::*;
         use SpecialKey::*;
 
-        let maximal_json = include_str!("../example_dofs/maximal.json");
+        let maximal_json = include_str!("../example_dofs/maximal.dof");
 
         let maximal_test = DofIntermediate {
             name: "Qwerty".into(),
