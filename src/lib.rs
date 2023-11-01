@@ -211,7 +211,7 @@ enum DofErrorInner {
     LayoutDoesntFit,
 }
 
-use DofErrorInner::*;
+use DofErrorInner as DErr;
 
 #[derive(Debug, Error, PartialEq)]
 #[error("{0}")]
@@ -260,13 +260,13 @@ impl Fingering {
 
                     match row.len() >= len {
                         true => Ok(row.to_vec()),
-                        false => Err(LayoutDoesntFit.into()),
+                        false => Err(DErr::LayoutDoesntFit.into()),
                     }
                 })
                 .collect::<Result<Vec<_>, DofError>>()
                 .map(Into::into)
         } else {
-            Err(LayoutDoesntFit.into())
+            Err(DErr::LayoutDoesntFit.into())
         }
     }
 }
@@ -309,7 +309,7 @@ impl TryFrom<KeyboardType> for Anchor {
             KeyboardType::Iso => Ok(Anchor::new(1, 1)),
             KeyboardType::Ortho => Ok(Anchor::new(0, 0)),
             KeyboardType::Colstag => Ok(Anchor::new(0, 0)),
-            KeyboardType::Custom(_) => Err(UnavailableKeyboardAnchor(value).into()),
+            KeyboardType::Custom(_) => Err(DErr::UnavailableKeyboardAnchor(value).into()),
         }
     }
 }
@@ -371,7 +371,7 @@ pub struct DofIntermediate {
 
 impl DofIntermediate {
     fn main_layer(&self) -> Result<&Layer, DofError> {
-        self.layers.get("main").ok_or(NoMainLayer.into())
+        self.layers.get("main").ok_or(DErr::NoMainLayer.into())
     }
 
     fn generate_shift_layer(main: &Layer) -> Layer {
@@ -395,7 +395,7 @@ impl DofIntermediate {
         if layers_dont_exist.len() == 0 {
             Ok(())
         } else {
-            Err(LayersNotFound(layers_dont_exist).into())
+            Err(DErr::LayersNotFound(layers_dont_exist).into())
         }
     }
 
@@ -413,7 +413,7 @@ impl DofIntermediate {
         if incompatible_shapes.len() == 0 {
             Ok(())
         } else {
-            Err(IncompatibleLayerShapes(incompatible_shapes).into())
+            Err(DErr::IncompatibleLayerShapes(incompatible_shapes).into())
         }
     }
 
@@ -422,7 +422,7 @@ impl DofIntermediate {
 
         match &self.fingering {
             Explicit(f) if f.shape() == main.shape() => Ok(f.clone()),
-            Explicit(_) => Err(IncompatibleFingeringShape.into()),
+            Explicit(_) => Err(DErr::IncompatibleFingeringShape.into()),
             Implicit(named) => {
                 let fingering = self
                     .board
@@ -455,7 +455,7 @@ mod tests {
 
         let v = Dof::try_from(minimal_test);
 
-        assert_eq!(v, Err(DofError::from(NoMainLayer)));
+        assert_eq!(v, Err(DofError::from(DErr::NoMainLayer)));
     }
 
     #[test]
