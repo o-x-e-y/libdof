@@ -14,7 +14,7 @@ pub use crate::{
     DofError,
     DofIntermediate,
     Fingering,
-    interact_dof::{
+    interaction::{
         KeyPos,
         Pos,
         DofInteractionError

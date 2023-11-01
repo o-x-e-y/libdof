@@ -1,9 +1,9 @@
 pub mod dofinitions;
-pub mod interact_dof;
+pub mod interaction;
 pub mod macros;
 pub mod prelude;
 
-use interact_dof::{KeyPos, Pos};
+use interaction::{KeyPos, Pos};
 use prelude::DofInteractionError;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};
@@ -196,7 +196,7 @@ enum DofErrorInner {
     #[error("{0}")]
     DofinitionError(#[from] dofinitions::DofinitionError),
     #[error("{0}")]
-    InteractionError(#[from] interact_dof::DofInteractionError),
+    InteractionError(#[from] interaction::DofInteractionError),
     #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
     UnavailableKeyboardAnchor(KeyboardType),
     #[error("This layout is missing a main layer")]
