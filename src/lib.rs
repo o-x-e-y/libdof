@@ -1,6 +1,7 @@
 pub mod definitions;
 pub mod interact_dof;
 pub mod macros;
+pub mod prelude;
 
 use interact_dof::{KeyPos, Pos};
 use serde::{Deserialize, Serialize};
