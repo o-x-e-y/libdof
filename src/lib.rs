@@ -4,6 +4,7 @@ pub mod macros;
 pub mod prelude;
 
 use interact_dof::{KeyPos, Pos};
+use prelude::DofInteractionError;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
@@ -194,6 +195,8 @@ impl Into<DofIntermediate> for Dof {
 enum DofErrorInner {
     #[error("{0}")]
     DofinitionError(#[from] dofinitions::DofinitionError),
+    #[error("{0}")]
+    InteractionError(#[from] interact_dof::DofInteractionError),
     #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
     UnavailableKeyboardAnchor(KeyboardType),
     #[error("This layout is missing a main layer")]
@@ -223,6 +226,12 @@ impl From<DofErrorInner> for DofError {
 impl From<DofinitionError> for DofError {
     fn from(value: DofinitionError) -> Self {
         Self(Box::new(DErr::DofinitionError(value)))
+    }
+}
+
+impl From<DofInteractionError> for DofError {
+    fn from(value: DofInteractionError) -> Self {
+        Self(Box::new(DErr::InteractionError(value)))
     }
 }
 
@@ -417,12 +426,10 @@ impl DofIntermediate {
             Implicit(named) => {
                 let fingering = self
                     .board
-                    .fingering(named)
-                    .map_err(|e| DefinitionError(e))?;
+                    .fingering(named)?;
 
                 fingering
                     .resized_fingering(self.anchor, main.shape())
-                    .map_err(|e| e.into())
             }
         }
     }
