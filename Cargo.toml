@@ -1,6 +1,6 @@
 [package]
 name = "libdof"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 authors = ["Oxey", "Asya"]
 description = ".dof file protocol, a keyboard layout format specification"
