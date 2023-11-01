@@ -41,10 +41,10 @@ impl<'a> From<(&'a str, (usize, usize))> for KeyPos<'a> {
     }
 }
 
-#[derive(Debug, Error, Clone)]
-pub enum DofInteractionError<'a> {
+#[derive(Debug, Error, Clone, PartialEq)]
+pub enum DofInteractionError {
     #[error("the provided layer name '{0}' is invalid")]
-    LayerDoesntExist(&'a str),
+    LayerDoesntExist(String),
     #[error("the given position ({0}, {1}) is not available on the keyboard")]
     InvalidPosition(u8, u8),
 }
@@ -105,7 +105,7 @@ impl Dof {
             let layer = self
                 .layers
                 .remove(layer_name1)
-                .ok_or(DIErr::LayerDoesntExist(layer_name1))?;
+                .ok_or(DIErr::LayerDoesntExist(layer_name1.into()))?;
 
             let char1 = layer
                 .0
@@ -133,12 +133,12 @@ impl Dof {
             let mut layer1 = self
                 .layers
                 .remove(layer_name1)
-                .ok_or(DIErr::LayerDoesntExist(layer_name1))?;
+                .ok_or(DIErr::LayerDoesntExist(layer_name1.into()))?;
 
             let mut layer2 = self
                 .layers
                 .remove(layer_name2)
-                .ok_or(DIErr::LayerDoesntExist(layer_name2))?;
+                .ok_or(DIErr::LayerDoesntExist(layer_name2.into()))?;
 
             let char1 = layer1
                 .0
