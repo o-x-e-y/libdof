@@ -1,7 +1,7 @@
 pub use crate::{
     Anchor,
     dofinitions::{
-        DefinitionError,
+        DofinitionError,
         Finger,
         Key as DofKey,
         KeyboardType,

@@ -5,7 +5,7 @@ use std::{convert::Infallible, fmt::Display, str::FromStr};
 use crate::Fingering;
 
 #[derive(Debug, Error, PartialEq)]
-pub enum DefinitionError {
+pub enum DofinitionError {
     #[error("Couldn't parse Finger from '{0}'")]
     FingerParseError(String),
     #[error("an empty string can't be parsed into a Key")]
@@ -44,7 +44,7 @@ impl Display for Finger {
 }
 
 impl FromStr for Finger {
-    type Err = DefinitionError;
+    type Err = DofinitionError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Finger::*;
@@ -61,7 +61,7 @@ impl FromStr for Finger {
             "RM" | "7" => Ok(RM),
             "RR" | "8" => Ok(RR),
             "RP" | "9" => Ok(RP),
-            _ => Err(DefinitionError::FingerParseError(s.to_string())),
+            _ => Err(DofinitionError::FingerParseError(s.to_string())),
         }
     }
 }
@@ -304,7 +304,7 @@ impl KeyboardType {
     pub fn fingering(
         &self,
         named_fingering: &NamedFingering,
-    ) -> Result<Fingering, DefinitionError> {
+    ) -> Result<Fingering, DofinitionError> {
         use Finger::*;
         use KeyboardType::*;
         use NamedFingering::*;
@@ -357,7 +357,7 @@ impl KeyboardType {
             ]
             .into(),
             (board, &f) => {
-                return Err(DefinitionError::UnsupportedKeyboardFingeringCombo(
+                return Err(DofinitionError::UnsupportedKeyboardFingeringCombo(
                     board.clone(),
                     f.clone(),
                 ))

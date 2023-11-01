@@ -192,8 +192,8 @@ impl Into<DofIntermediate> for Dof {
 
 #[derive(Debug, Error, PartialEq)]
 enum DofErrorInner {
-    #[error("couldn't parse fingering")]
-    DefinitionError(#[from] dofinitions::DefinitionError),
+    #[error("{0}")]
+    DofinitionError(#[from] dofinitions::DofinitionError),
     #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
     UnavailableKeyboardAnchor(KeyboardType),
     #[error("This layout is missing a main layer")]
@@ -217,6 +217,12 @@ pub struct DofError(#[source] Box<DofErrorInner>);
 impl From<DofErrorInner> for DofError {
     fn from(value: DofErrorInner) -> Self {
         Self(Box::new(value))
+    }
+}
+
+impl From<DofinitionError> for DofError {
+    fn from(value: DofinitionError) -> Self {
+        Self(Box::new(DErr::DofinitionError(value)))
     }
 }
 
