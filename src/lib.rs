@@ -13,7 +13,7 @@ use definitions::*;
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
 pub struct Dof {
     name: String,
@@ -33,21 +33,6 @@ pub struct Dof {
     fingering_name: Option<NamedFingering>,
     has_generated_shift: bool,
     keys: Vec<DescriptiveKey>,
-}
-
-impl PartialEq for Dof {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
-            && self.authors == other.authors
-            && self.board == other.board
-            && self.year == other.year
-            && self.description == other.description
-            && self.layers == other.layers
-            && self.anchor == other.anchor
-            && self.fingering == other.fingering
-            && self.fingering_name == other.fingering_name
-            && self.has_generated_shift == other.has_generated_shift
-    }
 }
 
 impl Dof {
