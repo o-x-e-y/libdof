@@ -337,20 +337,20 @@ impl DescriptiveKey {
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-struct DofIntermediate {
-    name: String,
-    authors: Option<Vec<String>>,
+pub struct DofIntermediate {
+    pub name: String,
+    pub authors: Option<Vec<String>>,
     #[serde_as(as = "DisplayFromStr")]
-    board: KeyboardType,
-    year: Option<u32>,
-    description: Option<String>,
-    link: Option<String>,
-    layers: BTreeMap<String, Layer>,
+    pub board: KeyboardType,
+    pub year: Option<u32>,
+    pub description: Option<String>,
+    pub link: Option<String>,
+    pub layers: BTreeMap<String, Layer>,
     #[serde(default = "Anchor::default")]
-    anchor: Anchor,
-    // alt_fingerings: Option<Vec<String>>,
-    // combos: Option<HashMap<String, String>>,
-    fingering: ParsedFingering,
+    pub anchor: Anchor,
+    // pub alt_fingerings: Option<Vec<String>>,
+    // pub combos: Option<HashMap<String, String>>,
+    pub fingering: ParsedFingering,
 }
 
 impl DofIntermediate {
