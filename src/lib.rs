@@ -1,4 +1,4 @@
-pub mod definitions;
+pub mod dofinitions;
 pub mod interact_dof;
 pub mod macros;
 pub mod prelude;
@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use std::collections::BTreeMap;
 
-use definitions::*;
+use dofinitions::*;
 
 #[serde_as]
 #[skip_serializing_none]
@@ -193,7 +193,7 @@ impl Into<DofIntermediate> for Dof {
 #[derive(Debug, Error, PartialEq)]
 enum DofErrorInner {
     #[error("couldn't parse fingering")]
-    DefinitionError(#[from] definitions::DefinitionError),
+    DefinitionError(#[from] dofinitions::DefinitionError),
     #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
     UnavailableKeyboardAnchor(KeyboardType),
     #[error("This layout is missing a main layer")]

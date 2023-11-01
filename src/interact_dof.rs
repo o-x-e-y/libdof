@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 use crate::{
-    definitions::{Finger, Key},
+    dofinitions::{Finger, Key},
     Dof,
 };
 

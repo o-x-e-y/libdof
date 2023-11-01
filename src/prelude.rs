@@ -1,6 +1,6 @@
 pub use crate::{
     Anchor,
-    definitions::{
+    dofinitions::{
         DefinitionError,
         Finger,
         Key as DofKey,
