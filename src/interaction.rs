@@ -17,26 +17,28 @@ impl From<(usize, usize)> for Pos {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct KeyPos<'a> {
-    pub layer: &'a str,
+#[derive(Debug, Clone, PartialEq)]
+pub struct KeyPos {
+    pub layer: String,
     pub pos: Pos,
 }
 
-impl<'a> KeyPos<'a> {
-    pub fn new(layer: &'a str, pos: Pos) -> Self {
+impl KeyPos {
+    pub fn new(layer: &str, pos: Pos) -> Self {
+        let layer = layer.into();
         Self { layer, pos }
     }
 }
 
-impl<'a> From<(&'a str, Pos)> for KeyPos<'a> {
-    fn from((layer, pos): (&'a str, Pos)) -> Self {
+impl From<(&str, Pos)> for KeyPos {
+    fn from((layer, pos): (&str, Pos)) -> Self {
+        let layer = layer.into();
         KeyPos { layer, pos }
     }
 }
 
-impl<'a> From<(&'a str, (usize, usize))> for KeyPos<'a> {
-    fn from((layer, pos): (&'a str, (usize, usize))) -> Self {
+impl From<(&str, (usize, usize))> for KeyPos {
+    fn from((layer, pos): (&str, (usize, usize))) -> Self {
         KeyPos::new(layer, pos.into())
     }
 }
@@ -52,10 +54,11 @@ pub enum DofInteractionError {
 use DofInteractionError as DIErr;
 
 impl Dof {
-    pub fn get<'a>(&'a self, key: impl Into<Key>) -> Vec<KeyPos<'a>> {
+    pub fn get(&self, key: impl Into<Key>) -> Vec<KeyPos> {
         let key = key.into();
 
         self.keys()
+            .into_iter()
             .filter(|dk| dk.output == key)
             .map(|dk| dk.keypos())
             .collect::<Vec<_>>()
@@ -65,6 +68,7 @@ impl Dof {
         let pos = pos.into();
 
         self.keys()
+            .into_iter()
             .filter(|dk| dk.pos() == pos)
             .map(|dk| dk.output.clone())
             .collect::<Vec<_>>()
@@ -72,7 +76,7 @@ impl Dof {
 
     pub fn finger(&self, pos: impl Into<Pos>) -> Option<Finger> {
         let Pos { row, col } = pos.into();
-        
+
         self.fingering()
             .rows()
             .nth(row)?
@@ -83,15 +87,16 @@ impl Dof {
 
     /// very bulky way to swap two keys on a layout. Do not use this anywhere where performance is
     /// even remotely important.
-    pub fn swap<'a>(
-        &'a mut self,
-        keypos1: impl Into<KeyPos<'a>>,
-        keypos2: impl Into<KeyPos<'a>>,
+    pub fn swap(
+        &mut self,
+        keypos1: impl Into<KeyPos>,
+        keypos2: impl Into<KeyPos>,
     ) -> Result<(), DofInteractionError> {
         let KeyPos {
             layer: layer_name1,
             pos: pos1,
         } = keypos1.into();
+
         let KeyPos {
             layer: layer_name2,
             pos: pos2,
@@ -104,8 +109,8 @@ impl Dof {
 
             let layer = self
                 .layers
-                .remove(layer_name1)
-                .ok_or(DIErr::LayerDoesntExist(layer_name1.into()))?;
+                .remove(&layer_name1)
+                .ok_or(DIErr::LayerDoesntExist(layer_name1.clone()))?;
 
             let char1 = layer
                 .0
@@ -128,17 +133,17 @@ impl Dof {
                 std::ptr::swap(char1, char2);
             }
 
-            self.layers.insert(layer_name1.into(), layer);
+            self.layers.insert(layer_name1.clone(), layer);
         } else {
             let mut layer1 = self
                 .layers
-                .remove(layer_name1)
-                .ok_or(DIErr::LayerDoesntExist(layer_name1.into()))?;
+                .remove(&layer_name1)
+                .ok_or(DIErr::LayerDoesntExist(layer_name1.clone()))?;
 
             let mut layer2 = self
                 .layers
-                .remove(layer_name2)
-                .ok_or(DIErr::LayerDoesntExist(layer_name2.into()))?;
+                .remove(&layer_name2)
+                .ok_or(DIErr::LayerDoesntExist(layer_name2.clone()))?;
 
             let char1 = layer1
                 .0
@@ -156,8 +161,8 @@ impl Dof {
 
             std::mem::swap(char1, char2);
 
-            self.layers.insert(layer_name1.into(), layer1);
-            self.layers.insert(layer_name2.into(), layer2);
+            self.layers.insert(layer_name1, layer1);
+            self.layers.insert(layer_name2, layer2);
         }
 
         Ok(())
@@ -197,7 +202,7 @@ mod tests {
         let swap2 = KeyPos::new("main", (0, 9).into());
 
         minimal_clone
-            .swap(swap1, swap2)
+            .swap(swap1.clone(), swap2.clone())
             .expect("couldn't swap because");
 
         minimal_clone
@@ -217,7 +222,7 @@ mod tests {
         let swap2 = KeyPos::new("main", (1, 10).into());
 
         minimal_clone
-            .swap(swap1, swap2)
+            .swap(swap1.clone(), swap2.clone())
             .expect("couldn't swap because");
 
         minimal_clone
@@ -237,7 +242,7 @@ mod tests {
         let swap2 = KeyPos::new("main", (1, 10).into());
 
         minimal_clone
-            .swap(swap1, swap2)
+            .swap(swap1.clone(), swap2.clone())
             .expect("couldn't swap because");
 
         minimal_clone

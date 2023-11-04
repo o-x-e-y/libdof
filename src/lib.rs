@@ -34,7 +34,6 @@ pub struct Dof {
     #[serde_as(as = "Option<DisplayFromStr>")]
     fingering_name: Option<NamedFingering>,
     has_generated_shift: bool,
-    keys: Vec<DescriptiveKey>,
 }
 
 impl Dof {
@@ -90,8 +89,25 @@ impl Dof {
         self.layers.get(name)
     }
 
-    pub fn keys(&self) -> impl Iterator<Item = &DescriptiveKey> {
-        self.keys.iter()
+    pub fn keys(&self) -> Vec<DescriptiveKey> {
+        let mut keys = Vec::<DescriptiveKey>::new();
+
+        for (name, layer) in self.layers.iter() {
+            for (i, row) in layer.0.iter().enumerate() {
+                for (j, key) in row.iter().enumerate() {
+                    let finger = self.fingering.0[i][j];
+
+                    let i = i + self.anchor.0 as usize;
+                    let j = j + self.anchor.1 as usize;
+
+                    let key = DescriptiveKey::new(key.clone(), name.into(), i, j, finger);
+
+                    keys.push(key);
+                }
+            }
+        }
+
+        keys
     }
 }
 
@@ -122,23 +138,6 @@ impl TryFrom<DofIntermediate> for Dof {
 
         if inter.board.is_custom() {
             inter.anchor = Anchor(0, 0);
-        }
-
-        let mut keys = Vec::<DescriptiveKey>::new();
-
-        for (name, layer) in inter.layers.iter() {
-            for (i, row) in layer.0.iter().enumerate() {
-                for (j, key) in row.iter().enumerate() {
-                    let finger = explicit_fingering.0[i][j];
-
-                    let i = i + inter.anchor.0 as usize;
-                    let j = j + inter.anchor.1 as usize;
-
-                    let key = DescriptiveKey::new(key.clone(), name.into(), i, j, finger);
-
-                    keys.push(key);
-                }
-            }
         }
 
         Ok(Self {
@@ -344,7 +343,7 @@ impl DescriptiveKey {
         (self.row, self.col).into()
     }
 
-    pub fn keypos<'a>(&'a self) -> KeyPos<'a> {
+    pub fn keypos(&self) -> KeyPos {
         (self.layer.as_str(), (self.row, self.col)).into()
     }
 }
@@ -594,7 +593,6 @@ mod tests {
             },
             fingering_name: Some(NamedFingering::Angle),
             has_generated_shift: true,
-            keys: Vec::new(),
         };
 
         assert_eq!(d, d_manual);
