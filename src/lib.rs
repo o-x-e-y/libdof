@@ -256,6 +256,18 @@ impl Default for Language {
 }
 
 impl Language {
+    pub fn new(language: &str, weight: usize) -> Self {
+        let language = language.into();
+        Self { language, weight }
+    }
+
+    pub fn only(language: &str) -> Self {
+        Self {
+            language: language.into(),
+            weight: 100
+        }
+    }
+
     fn english_default() -> Option<Vec<Self>> {
         Some(vec![Default::default()])
     }
