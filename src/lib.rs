@@ -502,7 +502,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
-            languages: Some(vec![Language::default()]),
+            languages: None,
             link: None,
             anchor: None,
             layers: BTreeMap::new(),
@@ -691,7 +691,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
-            languages: Some(vec![Language::default()]),
+            languages: None,
             link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
             anchor: Some(Anchor::new(1, 1)),
             layers: BTreeMap::from_iter([
