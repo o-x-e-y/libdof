@@ -20,20 +20,16 @@ use dofinitions::*;
 pub struct Dof {
     name: String,
     authors: Option<Vec<String>>,
-    #[serde_as(as = "DisplayFromStr")]
     board: KeyboardType,
     year: Option<u32>,
     description: Option<String>,
-    #[serde(default)]
     languages: Vec<Language>,
     link: Option<String>,
     layers: BTreeMap<String, Layer>,
-    #[serde(default = "Anchor::default")]
     anchor: Anchor,
     // alt_fingerings: Option<Vec<String>>,
     // combos: Option<HashMap<String, String>>,
     fingering: Fingering,
-    #[serde_as(as = "Option<DisplayFromStr>")]
     fingering_name: Option<NamedFingering>,
     has_generated_shift: bool,
 }
@@ -142,9 +138,10 @@ impl TryFrom<DofIntermediate> for Dof {
             false
         };
 
-        if inter.board.is_custom() {
-            inter.anchor = Anchor(0, 0);
-        }
+        let anchor = match inter.anchor {
+            None => inter.board.anchor(),
+            Some(a) => a
+        };
 
         Ok(Self {
             name: inter.name,
@@ -155,7 +152,7 @@ impl TryFrom<DofIntermediate> for Dof {
             languages: inter.languages.unwrap_or_default(),
             link: inter.link,
             layers: inter.layers,
-            anchor: inter.anchor,
+            anchor,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
             has_generated_shift,
@@ -176,7 +173,12 @@ impl From<Dof> for DofIntermediate {
 
         let languages = match dof.languages.as_slice() {
             [lang] if lang == &Language::default() => None,
-            _ => Some(dof.languages),
+            _ => Some(dof.languages.clone()),
+        };
+
+        let anchor = match dof.board.anchor() {
+            a if a == dof.anchor => None,
+            a => Some(a)
         };
 
         DofIntermediate {
@@ -188,7 +190,7 @@ impl From<Dof> for DofIntermediate {
             languages,
             link: dof.link,
             layers: dof.layers,
-            anchor: dof.anchor,
+            anchor,
             fingering,
         }
     }
@@ -200,8 +202,8 @@ enum DofErrorInner {
     DofinitionError(#[from] dofinitions::DofinitionError),
     #[error("{0}")]
     InteractionError(#[from] interaction::DofInteractionError),
-    #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
-    UnavailableKeyboardAnchor(KeyboardType),
+    // #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
+    // UnavailableKeyboardAnchor(KeyboardType),
     #[error("This layout is missing a main layer")]
     NoMainLayer,
     #[error("Found these layer keys '{0:?}' however these layers do not actually exist")]
@@ -250,6 +252,12 @@ impl Default for Language {
             language: "English".into(),
             weight: 100,
         }
+    }
+}
+
+impl Language {
+    fn english_default() -> Option<Vec<Self>> {
+        Some(vec![Default::default()])
     }
 }
 
@@ -318,17 +326,9 @@ impl Anchor {
     }
 }
 
-impl TryFrom<KeyboardType> for Anchor {
-    type Error = DofError;
-
-    fn try_from(value: KeyboardType) -> Result<Self, Self::Error> {
-        match value {
-            KeyboardType::Ansi => Ok(Anchor::new(1, 1)),
-            KeyboardType::Iso => Ok(Anchor::new(1, 1)),
-            KeyboardType::Ortho => Ok(Anchor::new(0, 0)),
-            KeyboardType::Colstag => Ok(Anchor::new(0, 0)),
-            KeyboardType::Custom(_) => Err(DErr::UnavailableKeyboardAnchor(value).into()),
-        }
+impl From<KeyboardType> for Anchor {
+    fn from(value: KeyboardType) -> Self {
+        value.anchor()
     }
 }
 
@@ -378,12 +378,11 @@ pub struct DofIntermediate {
     pub board: KeyboardType,
     pub year: Option<u32>,
     pub description: Option<String>,
-    #[serde(default)]
+    #[serde(default = "Language::english_default")]
     pub languages: Option<Vec<Language>>,
     pub link: Option<String>,
     pub layers: BTreeMap<String, Layer>,
-    #[serde(default = "Anchor::default")]
-    pub anchor: Anchor,
+    pub anchor: Option<Anchor>,
     // pub alt_fingerings: Option<Vec<String>>,
     // pub combos: Option<HashMap<String, String>>,
     pub fingering: ParsedFingering,
@@ -446,7 +445,12 @@ impl DofIntermediate {
             Implicit(named) => {
                 let fingering = self.board.fingering(named)?;
 
-                fingering.resized_fingering(self.anchor, main.shape())
+                let anchor = match self.anchor {
+                    Some(a) => a,
+                    None => self.board.anchor()
+                };
+
+                fingering.resized_fingering(anchor, main.shape())
             }
         }
     }
@@ -466,7 +470,7 @@ mod tests {
             description: None,
             languages: Default::default(),
             link: None,
-            anchor: Anchor::default(),
+            anchor: None,
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
         };
@@ -486,9 +490,9 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
-            languages: Default::default(),
+            languages: Language::english_default(),
             link: None,
-            anchor: Anchor::default(),
+            anchor: None,
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
         };
@@ -514,7 +518,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
-            languages: Default::default(),
+            languages: vec![Default::default()],
             link: None,
             anchor: Anchor::new(1, 1),
             layers: BTreeMap::from_iter([
@@ -639,9 +643,9 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
-            languages: Default::default(),
+            languages: None,
             link: None,
-            anchor: Anchor::default(),
+            anchor: None,
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
         };
@@ -675,9 +679,9 @@ mod tests {
             board: KeyboardType::Ansi,
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
-            languages: Default::default(),
+            languages: Language::english_default(),
             link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
-            anchor: Anchor::new(1, 1),
+            anchor: Some(Anchor::new(1, 1)),
             layers: BTreeMap::from_iter([
                 (
                     "main".into(),

@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use crate::Fingering;
+use crate::{Fingering, Anchor};
 
 #[derive(Debug, Error, PartialEq)]
 pub enum DofinitionError {
@@ -369,6 +369,16 @@ impl KeyboardType {
 
     pub fn is_custom(&self) -> bool {
         matches!(self, Self::Custom(_))
+    }
+
+    pub fn anchor(&self) -> Anchor {
+        match self {
+            KeyboardType::Ansi => Anchor::new(1, 1),
+            KeyboardType::Iso => Anchor::new(1, 1),
+            KeyboardType::Ortho => Anchor::new(0, 0),
+            KeyboardType::Colstag => Anchor::new(0, 0),
+            KeyboardType::Custom(_) => Anchor::new(0, 0),
+        }
     }
 }
 
