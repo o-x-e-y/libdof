@@ -143,13 +143,18 @@ impl TryFrom<DofIntermediate> for Dof {
             Some(a) => a
         };
 
+        let languages = match inter.languages {
+            Some(l) => l,
+            None => vec![Language::default()]
+        };
+
         Ok(Self {
             name: inter.name,
             authors: inter.authors,
             board: inter.board,
             year: inter.year,
             description: inter.description,
-            languages: inter.languages.unwrap_or_default(),
+            languages,
             link: inter.link,
             layers: inter.layers,
             anchor,
@@ -266,10 +271,6 @@ impl Language {
             language: language.into(),
             weight: 100
         }
-    }
-
-    fn english_default() -> Option<Vec<Self>> {
-        Some(vec![Default::default()])
     }
 }
 
@@ -390,7 +391,6 @@ pub struct DofIntermediate {
     pub board: KeyboardType,
     pub year: Option<u32>,
     pub description: Option<String>,
-    #[serde(default = "Language::english_default")]
     pub languages: Option<Vec<Language>>,
     pub link: Option<String>,
     pub layers: BTreeMap<String, Layer>,
@@ -502,7 +502,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
-            languages: Language::english_default(),
+            languages: Some(vec![Language::default()]),
             link: None,
             anchor: None,
             layers: BTreeMap::new(),
@@ -691,7 +691,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
-            languages: Language::english_default(),
+            languages: Some(vec![Language::default()]),
             link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
             anchor: Some(Anchor::new(1, 1)),
             layers: BTreeMap::from_iter([
@@ -941,5 +941,17 @@ mod tests {
             .expect("couldn't parse explicit json");
 
         assert_eq!(dof_maximal, maximal_test);
+    }
+
+    #[test]
+    fn lang_fn() {
+        let languages = &[Language::new("English", 100)];
+
+        let languages = match languages {
+            [lang] if lang == &Language::default() => None,
+            _ => Some(languages),
+        };
+
+        println!("{:?}", languages)
     }
 }
