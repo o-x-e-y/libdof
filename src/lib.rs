@@ -24,6 +24,8 @@ pub struct Dof {
     board: KeyboardType,
     year: Option<u32>,
     description: Option<String>,
+    #[serde(default)]
+    languages: Vec<Language>,
     link: Option<String>,
     layers: BTreeMap<String, Layer>,
     #[serde(default = "Anchor::default")]
@@ -55,6 +57,10 @@ impl Dof {
 
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
+    }
+
+    pub fn languages(&self) -> &[Language] {
+        &self.languages
     }
 
     pub fn layers(&self) -> &BTreeMap<String, Layer> {
@@ -146,13 +152,13 @@ impl TryFrom<DofIntermediate> for Dof {
             board: inter.board,
             year: inter.year,
             description: inter.description,
+            languages: inter.languages.unwrap_or_default(),
             link: inter.link,
             layers: inter.layers,
             anchor: inter.anchor,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
             has_generated_shift,
-            keys,
         })
     }
 }
@@ -162,30 +168,28 @@ impl Into<DofIntermediate> for Dof {
         if self.has_generated_shift {
             self.layers.remove("shift");
         }
-        if let Some(fingering_name) = self.fingering_name {
-            DofIntermediate {
-                name: self.name,
-                authors: self.authors,
-                board: self.board,
-                year: self.year,
-                description: self.description,
-                link: self.link,
-                layers: self.layers,
-                anchor: self.anchor,
-                fingering: ParsedFingering::Implicit(fingering_name),
-            }
-        } else {
-            DofIntermediate {
-                name: self.name,
-                authors: self.authors,
-                board: self.board,
-                year: self.year,
-                description: self.description,
-                link: self.link,
-                layers: self.layers,
-                anchor: self.anchor,
-                fingering: ParsedFingering::Explicit(self.fingering),
-            }
+
+        let fingering = self
+            .fingering_name
+            .map(ParsedFingering::Implicit)
+            .unwrap_or(ParsedFingering::Explicit(self.fingering));
+
+        let languages = match self.languages.as_slice() {
+            [lang] if lang == &Language::default() => None,
+            _ => Some(self.languages),
+        };
+
+        DofIntermediate {
+            name: self.name,
+            authors: self.authors,
+            board: self.board,
+            year: self.year,
+            description: self.description,
+            languages,
+            link: self.link,
+            layers: self.layers,
+            anchor: self.anchor,
+            fingering,
         }
     }
 }
@@ -231,6 +235,21 @@ impl From<DofinitionError> for DofError {
 impl From<DofInteractionError> for DofError {
     fn from(value: DofInteractionError) -> Self {
         Self(Box::new(DErr::InteractionError(value)))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Language {
+    language: String,
+    weight: usize,
+}
+
+impl Default for Language {
+    fn default() -> Self {
+        Language {
+            language: "English".into(),
+            weight: 100,
+        }
     }
 }
 
@@ -359,6 +378,8 @@ pub struct DofIntermediate {
     pub board: KeyboardType,
     pub year: Option<u32>,
     pub description: Option<String>,
+    #[serde(default)]
+    pub languages: Option<Vec<Language>>,
     pub link: Option<String>,
     pub layers: BTreeMap<String, Layer>,
     #[serde(default = "Anchor::default")]
@@ -423,12 +444,9 @@ impl DofIntermediate {
             Explicit(f) if f.shape() == main.shape() => Ok(f.clone()),
             Explicit(_) => Err(DErr::IncompatibleFingeringShape.into()),
             Implicit(named) => {
-                let fingering = self
-                    .board
-                    .fingering(named)?;
+                let fingering = self.board.fingering(named)?;
 
-                fingering
-                    .resized_fingering(self.anchor, main.shape())
+                fingering.resized_fingering(self.anchor, main.shape())
             }
         }
     }
@@ -446,6 +464,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
+            languages: Default::default(),
             link: None,
             anchor: Anchor::default(),
             layers: BTreeMap::new(),
@@ -467,6 +486,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
+            languages: Default::default(),
             link: None,
             anchor: Anchor::default(),
             layers: BTreeMap::new(),
@@ -494,6 +514,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
+            languages: Default::default(),
             link: None,
             anchor: Anchor::new(1, 1),
             layers: BTreeMap::from_iter([
@@ -618,6 +639,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: None,
             description: None,
+            languages: Default::default(),
             link: None,
             anchor: Anchor::default(),
             layers: BTreeMap::new(),
@@ -653,6 +675,7 @@ mod tests {
             board: KeyboardType::Ansi,
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
+            languages: Default::default(),
             link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
             anchor: Anchor::new(1, 1),
             layers: BTreeMap::from_iter([
