@@ -1,23 +1,7 @@
 pub use crate::{
-    Anchor,
     dofinitions::{
-        DofinitionError,
-        Finger,
-        Key as DofKey,
-        KeyboardType,
-        NamedFingering,
-        Shape,
-        SpecialKey,
+        DofinitionError, Finger, Key, KeyboardType, NamedFingering, Shape, SpecialKey,
     },
-    DescriptiveKey,
-    Dof,
-    DofError,
-    DofIntermediate,
-    Fingering,
-    interaction::{
-        KeyPos,
-        Pos,
-        DofInteractionError
-    },
-    Layer,
+    interaction::{DofInteractionError, KeyPos, Pos},
+    Anchor, DescriptiveKey, Dof, DofError, DofIntermediate, Fingering, Layer, ParsedFingering,
 };
