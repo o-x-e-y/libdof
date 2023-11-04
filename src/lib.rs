@@ -163,32 +163,32 @@ impl TryFrom<DofIntermediate> for Dof {
     }
 }
 
-impl Into<DofIntermediate> for Dof {
-    fn into(mut self) -> DofIntermediate {
-        if self.has_generated_shift {
-            self.layers.remove("shift");
+impl From<Dof> for DofIntermediate {
+    fn from(mut dof: Dof) -> DofIntermediate {
+        if dof.has_generated_shift {
+            dof.layers.remove("shift");
         }
 
-        let fingering = self
+        let fingering = dof
             .fingering_name
             .map(ParsedFingering::Implicit)
-            .unwrap_or(ParsedFingering::Explicit(self.fingering));
+            .unwrap_or(ParsedFingering::Explicit(dof.fingering));
 
-        let languages = match self.languages.as_slice() {
+        let languages = match dof.languages.as_slice() {
             [lang] if lang == &Language::default() => None,
-            _ => Some(self.languages),
+            _ => Some(dof.languages),
         };
 
         DofIntermediate {
-            name: self.name,
-            authors: self.authors,
-            board: self.board,
-            year: self.year,
-            description: self.description,
+            name: dof.name,
+            authors: dof.authors,
+            board: dof.board,
+            year: dof.year,
+            description: dof.description,
             languages,
-            link: self.link,
-            layers: self.layers,
-            anchor: self.anchor,
+            link: dof.link,
+            layers: dof.layers,
+            anchor: dof.anchor,
             fingering,
         }
     }
