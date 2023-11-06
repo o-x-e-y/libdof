@@ -333,12 +333,7 @@ impl Anchor {
     }
 }
 
-impl From<KeyboardType> for Anchor {
-    fn from(value: KeyboardType) -> Self {
-        value.anchor()
-    }
-}
-
+/// A Key with metadata attached. These are produced by calling [`Dof::keys()`](crate::Dof::keys()).
 #[derive(Clone, Debug, PartialEq)]
 pub struct DescriptiveKey {
     output: Key,
