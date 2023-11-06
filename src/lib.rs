@@ -1,6 +1,6 @@
 pub mod dofinitions;
 pub mod interaction;
-pub mod macros;
+mod macros;
 pub mod prelude;
 
 use interaction::{KeyPos, Pos};
