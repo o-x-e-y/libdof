@@ -327,12 +327,6 @@ impl_keyboard!(Layer, Key, LayerStrAsRow);
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Anchor(u8, u8);
 
-impl Default for Anchor {
-    fn default() -> Self {
-        Self(1, 1)
-    }
-}
-
 impl Anchor {
     pub fn new(x: u8, y: u8) -> Self {
         Anchor(x, y)
