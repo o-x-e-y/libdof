@@ -401,11 +401,11 @@ pub struct DofIntermediate {
 }
 
 impl DofIntermediate {
-    fn main_layer(&self) -> Result<&Layer, DofError> {
+    pub fn main_layer(&self) -> Result<&Layer, DofError> {
         self.layers.get("main").ok_or(DErr::NoMainLayer.into())
     }
 
-    fn generate_shift_layer(main: &Layer) -> Layer {
+    pub fn generate_shift_layer(main: &Layer) -> Layer {
         main.0
             .iter()
             .map(|row| row.into_iter().map(|k| k.shifted()).collect::<Vec<_>>())
@@ -430,7 +430,7 @@ impl DofIntermediate {
         }
     }
 
-    fn validate_layer_shapes(&self, main: &Layer) -> Result<(), DofError> {
+    pub fn validate_layer_shapes(&self, main: &Layer) -> Result<(), DofError> {
         let main_shape = main.shape();
 
         let incompatible_shapes = self
@@ -448,7 +448,7 @@ impl DofIntermediate {
         }
     }
 
-    fn explicit_fingering(&self, main: &Layer) -> Result<Fingering, DofError> {
+    pub fn explicit_fingering(&self, main: &Layer) -> Result<Fingering, DofError> {
         use ParsedFingering::*;
 
         match &self.fingering {
