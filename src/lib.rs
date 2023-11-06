@@ -119,7 +119,7 @@ impl TryFrom<DofIntermediate> for Dof {
     fn try_from(mut inter: DofIntermediate) -> Result<Self, Self::Error> {
         let main_layer = inter.main_layer()?;
 
-        inter.validate_layers(main_layer)?;
+        inter.validate_layer_keys(main_layer)?;
         inter.validate_layer_shapes(main_layer)?;
 
         let explicit_fingering = inter.explicit_fingering(main_layer)?;
@@ -413,7 +413,7 @@ impl DofIntermediate {
             .into()
     }
 
-    fn validate_layers(&self, main: &Layer) -> Result<(), DofError> {
+    pub fn validate_layer_keys(&self, main: &Layer) -> Result<(), DofError> {
         let layers_dont_exist = main
             .keys()
             .map(|k| match k {
