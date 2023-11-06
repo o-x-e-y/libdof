@@ -1,3 +1,87 @@
+//! The .dof file format is a json compatible format with specified fields describing any keyboard layout,
+//! including some defaults.
+//! 
+//! It has a set amount of (sometimes optional) fields:
+//! 
+//! * `name`: name of the layout    
+//! * `[author]`: author of the layout   
+//! * `board`: keyboard type the layout is made for. Any value is allowed, but a few values have special
+//! properties (explained further below):
+//!     - `ansi`
+//!     - `iso`
+//!     - `ortho`
+//!     - `colstag`
+//! * `[date]`: date the layout was created. 
+//! * `[tags]`: array of strings containing relevant tags the layout could have.
+//! * `[description]`: string containing some of the author's thoughts.
+//! * `[link]`: url to a page with more information about the layout.
+//! * `layers`: specifies all layers on the layout. They're of the form of `name: <layer>`, and
+//! each layer has rows specified by a string consisting of keys delimited by any amount of
+//! whitespace (but typically a space). They work like the following:
+//!     - if the string length is 1, output:
+//!         - An empty key when it's equal to `~`
+//!         - A transparent key when it's equal to `*`, which refers to the value on the main layer. This
+//! is equivalent to `~` when on the main layer.
+//!         - Enter when it's equal to `\n`,
+//!         - Tab when it's equal to `\t`,
+//!         - A character key otherwise.
+//!     - if the string length is more than 1, output:
+//!         - `~` and `*` characters if it contains `\\~` and `\\*` respectively,
+//!         - A special key like shift or space when provided with specific identifiers which can be
+//! found at the bottom of the library documentation,
+//!         - A layer key if it leads with an `@`, for example `@altgr`
+//!         - A word key with its first character removed if it leads with `#`, `\\#` or`\\@`, for example
+//! `\\@altgr` would output `@altgr` rather than become an altgr layer key,
+//!         - A word key, which outputs multiple characters at the same time, otherwise.
+//! 
+//! 
+//!     All layer names are allowed though two are reserved, being:
+//!     - `main` (mandatory)
+//!     - `shift`
+//!   
+//!     While main is mandatory to be filled, shift can be elided and will follow qwerty's
+//! capitalization scheme. Any shape is allowed, but if you use a standard 3x10 shape, you may be
+//! able to elide a fingermap (more on this below).
+//! 
+//! * `fingering`: specifies which finger presses which key. It's formatted the same as the
+//! layers object, and it should have the exact same shape (it will error otherwise):
+//!     - `LP` or `0`: left pinky
+//!     - `LR` or `1`: left ring
+//!     - `LM` or `2`: left middle
+//!     - `LI` or `3`: left index
+//!     - `LT` or `4`: left thumb
+//!     - `RT` or `5`: right thumb
+//!     - `RI` or `6`: right index
+//!     - `RM` or `7`: right middle
+//!     - `RR` or `8`: right ring
+//!     - `RP` or `9`: right pinky
+//!   
+//!     As alluded to above you can forego defining this completely and instead provide just a string
+//! instead in the following scenarios:
+//!     - board = ansi, main layer shape starts at qwerty `q`, allowed fingerings: traditional,
+//! standard, angle
+//!     - board = iso, main layer shape starts at qwerty `q` with 11 keys on the bottom row, allowed
+//! fingerings: traditional, standard, angle
+//!     - board = ortho, main layer shape = 3x10, allod fingerings: traditional, standard
+//!     - board = colstag, main layer shap = 3x10, allowed fingerings: traditional, standard
+//!   
+//!     If any other value is provided, it should error.
+//! 
+//! ## Special modifier values:
+//! * `esc` => `Esc`,
+//! * `repeat`, `rpt` => `Repeat`,
+//! * `space`, `spc` => `Space`,
+//! * `tab`, `tb` => `Tab`,
+//! * `enter`, `return`, `ret`, `ent`, `rt` => `Enter`,
+//! * `shift`, `shft`, `sft`, `st` => `Shift`,
+//! * `caps`, `cps`, `cp` => `Caps`,
+//! * `ctrl`, `ctl`, `ct` => `Ctrl`,
+//! * `alt`, `lalt`, `ralt`, `lt` => `Alt`,
+//! * `meta`, `mta`, `met`, `mt`, `super`, `sup`, `sp` => `Meta`,
+//! * `fn` => `Fn`,
+//! * `backspace`, `bksp`, `bcsp`, `bsp` => `Backspace`,
+//! * `del` => `Del`,
+
 pub mod dofinitions;
 pub mod interaction;
 mod macros;
@@ -13,6 +97,24 @@ use std::collections::BTreeMap;
 
 use dofinitions::*;
 
+/// A struct to represent the dof keyboard layout spec. This struct is useful for interacting with dofs
+/// and parsing to/from .dof using [`serde_json`](https://crates.io/crates/serde_json). For converting
+/// other formats into dofs, consider taking a look at [`DofIntermediate`](crate::DofIntermediate).
+/// 
+/// # Example
+/// 
+/// Parsing into dof and getting the name of the layout:
+/// 
+/// ```
+/// # use serde_json;
+/// # use libdof::Dof;
+/// # fn p() -> Result<(), Box<dyn std::error::Error>> {
+/// let dof_str = include_str!("../example_dofs/minimal_valid.dof");
+/// let dof = serde_json::from_str::<Dof>(dof_str)?;
+/// let name = dof.name();
+/// # Ok(()) }
+/// # fn main() { p(); }
+/// ```
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -35,62 +137,77 @@ pub struct Dof {
 }
 
 impl Dof {
+    /// Get the name of the layout.
     pub fn name(&self) -> &str {
         &self.name
     }
 
+    /// Get an optional slice of authors of the layout.
     pub fn authors(&self) -> Option<&[String]> {
         self.authors.as_deref()
     }
 
+    /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout.
     pub fn board(&self) -> &KeyboardType {
         &self.board
     }
 
+    /// Get the optional publication year of the layout.
     pub fn year(&self) -> Option<u32> {
         self.year
     }
 
+    /// Get the optional description of the layout.
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
     }
 
+    /// Get a slice of [Language](crate::Language) this layout was intended to be used for.
     pub fn languages(&self) -> &[Language] {
         &self.languages
     }
 
+    /// Get a map containing the layer names and its corresponding layer on the layout.
     pub fn layers(&self) -> &BTreeMap<String, Layer> {
         &self.layers
     }
 
+    /// Get the layout anchor, which specifies the coordinate of the top left corner of the layout compared to
+    /// the physical keyboard it's on.
     pub fn anchor(&self) -> Anchor {
         self.anchor
     }
 
+    /// Get the fingering of the keyboard, which specifies for each coordinate which finger is supposed to press
+    /// what key.
     pub fn fingering(&self) -> &Fingering {
         &self.fingering
     }
 
+    /// If present, get a specified type of fingering that the layout uses.
     pub fn fingering_name(&self) -> Option<&NamedFingering> {
         self.fingering_name.as_ref()
     }
 
-    /// This function can be assumed to be infallible if you serialized into Dof as validation
-    /// will have prevented you to create a Dof without a shift layer
+    /// Get the main layer of the layout. This function can be assumed to be infallible if you
+    /// serialized into `Dof`, because creating a `Dof` without a main layer is invalid.
     pub fn main_layer(&self) -> Option<&Layer> {
         self.layers.get("main")
     }
 
-    /// This function can be assumed to be infallible if you serialized into Dof as validation
-    /// will have prevented you to create a Dof without a shift layer
+    /// Get the shift layer of the layout. This function can be assumed to be infallible if you
+    /// serialized into `Dof`, because creating a `Dof` without a main layer is invalid.
     pub fn shift_layer(&self) -> Option<&Layer> {
         self.layers.get("shift")
     }
 
+    /// Get a specific layer on the keyboard, if it exists.
     pub fn layer(&self, name: &str) -> Option<&Layer> {
         self.layers.get(name)
     }
 
+    /// Get a vector of keys with metadata for each key attached. This can be useful if you want
+    /// to filter or any other way look at a specific set of keys on the keyboard.
     pub fn keys(&self) -> Vec<DescriptiveKey> {
         let mut keys = Vec::<DescriptiveKey>::new();
 
@@ -223,6 +340,10 @@ enum DofErrorInner {
 
 use DofErrorInner as DErr;
 
+/// The main error struct of the library. Internally it uses a Box containing [`DofErrorInner`](crate::DofErrorInner)
+/// to save space. The other error types of this crate, being [`DofinitonError`](crate::dofinitions::DofinitionError)
+/// and [`DofInteractionError`](crate::interaction::DofInteractionError), can be seamlessly converted into `DofError`
+/// with the `?` operator.
 #[derive(Debug, Error, PartialEq)]
 #[error("{0}")]
 pub struct DofError(#[source] Box<DofErrorInner>);
@@ -245,6 +366,11 @@ impl From<DofInteractionError> for DofError {
     }
 }
 
+/// Used to represent the language(s) a layout is optimized for, containing the name of a language as well as
+/// a weight, the latter being useful for layouts that are made for a combination of languages with some
+/// amount of % split.
+/// 
+/// The Default implementation of Language is English with weight 100.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Language {
     language: String,
@@ -266,6 +392,8 @@ impl Language {
         Self { language, weight }
     }
 
+    /// Presets the weight to be 100, small shorthand for when you only need one language though in theory
+    /// you could use two of these languages to represent a `(100 + 100) / 2 = 50%` split.
     pub fn only(language: &str) -> Self {
         Self {
             language: language.into(),
@@ -274,6 +402,7 @@ impl Language {
     }
 }
 
+/// Struct that represents the fingering of each layout. It is an abstraction over `Vec<Vec<Finger>>`.
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Fingering(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>);
@@ -281,6 +410,9 @@ pub struct Fingering(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>
 impl_keyboard!(Fingering, Finger, FingeringStrAsRow);
 
 impl Fingering {
+    /// Given a specific fingering, an [`Anchor`](crate::Anchor) and the [`Shape`](crate::Shape) you
+    /// would like to get (that has to be smaller than the fingering itself), resize the fingering to
+    /// the shape provided.
     pub fn resized_fingering(
         &self,
         Anchor(x, y): Anchor,
@@ -310,6 +442,8 @@ impl Fingering {
     }
 }
 
+/// Abstraction over the way an actual .dof file is allowed to represent the fingering of a layout, being either
+/// explicit through providing a list of fingerings for each key, or implicit, by providing a name. 
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -318,12 +452,18 @@ pub enum ParsedFingering {
     Implicit(#[serde_as(as = "DisplayFromStr")] NamedFingering),
 }
 
+/// An abstraction of `Vec<Vec<Key>>` to represent a layer on a layout.
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Layer(#[serde_as(as = "Vec<LayerStrAsRow>")] Vec<Vec<Key>>);
 
 impl_keyboard!(Layer, Key, LayerStrAsRow);
 
+/// An anchor represents where the top left key on a `Dof` is compared to where it would be on a physical
+/// keyboard. For example, if you were to provide a 3x10 raster of letters but would like this applied to an
+/// ANSI keyboard, the `Anchor` would be (1, 1), as the top left corner of the `Dof` (being where qwerty `q`
+/// is) would need to be shifted one left and one up to be in the top left corner of the physical keyboard.
+/// Therefore, the default value of an anchor is dependent on the physical keyboard it is applied to.
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Anchor(u8, u8);
 
@@ -354,74 +494,97 @@ impl DescriptiveKey {
         }
     }
 
+    /// Get the [`KeyPos`](crate::interaction::KeyPos) of a certain key, containing the layer name as well
+    /// its row and column coordinates.
     pub fn keypos(&self) -> KeyPos {
         (self.layer.as_str(), (self.row, self.col)).into()
     }
 
+    /// Get the key's row and column.
     pub fn pos(&self) -> Pos {
         (self.row, self.col).into()
     }
 
+    /// Get the key's row.
     pub fn row(&self) -> usize {
         self.row
     }
 
+    /// Get the key's column.
     pub fn col(&self) -> usize {
         self.col
     }
 
+    /// Get the finger the key is supposed to be pressed with.
     pub fn finger(&self) -> Finger {
         self.finger
     }
 
+    /// Get the key's output.
     pub fn output(&self) -> &Key {
         &self.output
     }
 
+    /// Get the name of the layer of the key.
     pub fn layer_name(&self) -> &str {
         &self.layer
     }
 
+    /// Check if the key is on a certain finger.
     pub fn is_on_finger(&self, finger: Finger) -> bool {
         self.finger == finger
     }
 
+    /// Check if the key is on any of the provided fingers.
     pub fn is_on_fingers(&self, fingers: &[Finger]) -> bool {
         fingers
             .into_iter()
             .any(|f| self.finger == *f)
     }
 
+    /// Check if the key is on left hand, including left thumb.
     pub fn is_on_left_hand(&self) -> bool {
         use Finger::*;
 
         matches!(self.finger, LP | LR | LM | LI | LT)
     }
 
+    /// Check if the key is on a specific layer.
     pub fn is_on_layer(&self, layer: &str) -> bool {
         self.layer == layer
     }
 
+    /// Check if the key is of type [`Key::Char`](crate::dofinitions::Key::Char) which outputs
+    /// a single character.
     pub fn is_char_key(&self) -> bool {
         matches!(self.output, Key::Char(_))
     }
 
+    /// Check if the key is of type [`Key::Word`](crate::dofinitions::Key::Word) which outputs a specific
+    /// string.
     pub fn is_word_key(&self) -> bool {
         matches!(self.output, Key::Word(_))
     }
 
+    /// Check if the key is of type [`Key::Empty`](crate::dofinitions::Key::Empty) which doesn't output
+    /// anything.
     pub fn is_empty_key(&self) -> bool {
         matches!(self.output, Key::Empty)
     }
 
+    /// Check if the key is of type [`Key::Transparent`](crate::dofinitions::Key::Char) which outputs
+    /// whatever it is the main layer outputs in that position.
     pub fn is_transparent_key(&self) -> bool {
         matches!(self.output, Key::Transparent)
     }
 
+    /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer) which holds the name.
+    /// of a layer on the layout
     pub fn is_layer_key(&self) -> bool {
         matches!(self.output, Key::Layer { name: _ })
     }
 
+    /// Get the output if the key is of type [`Key::Char`](crate::dofinitions::Key::Char).
     pub fn char_output(&self) -> Option<char> {
         match self.output {
             Key::Char(c) => Some(c),
@@ -429,6 +592,7 @@ impl DescriptiveKey {
         }
     }
 
+    /// Get the output if the key is of type [`Key::Word`](crate::dofinitions::Key::Word).
     pub fn word_output(&self) -> Option<&str> {
         match &self.output {
             Key::Word(s) => Some(s),
@@ -436,6 +600,7 @@ impl DescriptiveKey {
         }
     }
 
+    /// Get the layer name if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
     pub fn layer_output(&self) -> Option<&str> {
         match &self.output {
             Key::Layer { name } => Some(name),
@@ -444,7 +609,9 @@ impl DescriptiveKey {
     }
 }
 
-/// Main struct to use for parsing
+/// Main struct to use for parsing, and a more or less literal interpretation of what a .dof file can contain.
+/// As its fields are public, this can also be useful for implementing `TryFrom<Type> for Dof` because at the
+/// end of that function you can call `intermediate.try_into()` to handle all validation for you.
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -465,10 +632,20 @@ pub struct DofIntermediate {
 }
 
 impl DofIntermediate {
+    /// Get the main layer if it exists. If it doesn't return a `NoMainLayer` error.
     pub fn main_layer(&self) -> Result<&Layer, DofError> {
         self.layers.get("main").ok_or(DErr::NoMainLayer.into())
     }
 
+    /// If not provided, will generate a default shift layer with some sane defaults. This is useful
+    /// if your shift layer isn't doing anything special. The defaults are:
+    /// * Letters are uppercased, unless their uppercase version spans multiple characters,
+    /// * Symbols and numbers are given their qwerty uppercase. This means that `7` becomes `&`, `'`
+    /// becomes `"`, `[` becomes `{`, etc,
+    /// * Special keys become Transparent.
+    /// 
+    /// **Words are unaffected!** This means that if you would like Word keys to output something different,
+    /// you must specify a custom shift layer.
     pub fn generate_shift_layer(main: &Layer) -> Layer {
         main.0
             .iter()
@@ -477,6 +654,8 @@ impl DofIntermediate {
             .into()
     }
 
+    /// Validation check to see if the layers the [`Key::Layer`](crate::dofinitions::Key::Layer)
+    /// keys point to actually exist.
     pub fn validate_layer_keys(&self, main: &Layer) -> Result<(), DofError> {
         let layers_dont_exist = main
             .keys()
@@ -494,6 +673,7 @@ impl DofIntermediate {
         }
     }
 
+    /// Validation check to see if all layers are the same shape as the main layer.
     pub fn validate_layer_shapes(&self, main: &Layer) -> Result<(), DofError> {
         let main_shape = main.shape();
 
@@ -512,6 +692,9 @@ impl DofIntermediate {
         }
     }
 
+    /// Validation check to see if the provided fingering has the same shape as the main layer.
+    /// If left implicit (by leaving just a name of a fingering, like `traditional` /// or `angle`)
+    /// will try to generate a fingering with the same shape as the main layer.
     pub fn explicit_fingering(&self, main: &Layer) -> Result<Fingering, DofError> {
         use ParsedFingering::*;
 

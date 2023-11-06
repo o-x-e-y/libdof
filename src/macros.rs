@@ -1,3 +1,5 @@
+//! Contains a macro that's used internally to generate the same code for both `Fingering` and `Layer`.
+
 #[macro_export]
 macro_rules! impl_keyboard {
     ($type:ty, $ret:ty, $alias:ident) => {

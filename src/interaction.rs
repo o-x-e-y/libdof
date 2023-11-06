@@ -1,3 +1,5 @@
+//! Contains some structs and functions that are used when interacting with the layout, like swapping two keys.
+
 use thiserror::Error;
 
 use crate::{
@@ -5,6 +7,7 @@ use crate::{
     Dof,
 };
 
+/// Represents a (row, column) position on a keyboard. Can be created by `(num, num).into()`.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pos {
     row: usize,
@@ -17,6 +20,8 @@ impl From<(usize, usize)> for Pos {
     }
 }
 
+/// Represents a layer name along with a row and column on a keyboard. Can also be created by `(name, Pos).into()`
+/// or `(name, (row, col)).into()`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct KeyPos {
     pub layer: String,
@@ -43,6 +48,8 @@ impl From<(&str, (usize, usize))> for KeyPos {
     }
 }
 
+/// Error subtype of the [`interaction`](crate::interaction) module. Can be converted into `DofError` seamlessly
+/// using the `?` operator.
 #[derive(Debug, Error, Clone, PartialEq)]
 pub enum DofInteractionError {
     #[error("the provided layer name '{0}' is invalid")]
@@ -54,6 +61,7 @@ pub enum DofInteractionError {
 use DofInteractionError as DIErr;
 
 impl Dof {
+    /// Get every `KeyPos` that matches the given key. This can be multiple keys.
     pub fn get(&self, key: impl Into<Key>) -> Vec<KeyPos> {
         let key = key.into();
 
@@ -64,6 +72,7 @@ impl Dof {
             .collect::<Vec<_>>()
     }
 
+    /// Get all keys for a given `Pos`, one for each layer. 
     pub fn tower(&self, pos: impl Into<Pos>) -> Vec<Key> {
         let pos = pos.into();
 
@@ -74,6 +83,7 @@ impl Dof {
             .collect::<Vec<_>>()
     }
 
+    /// Get the finger a key on a certain `Pos` is pressed with.
     pub fn finger(&self, pos: impl Into<Pos>) -> Option<Finger> {
         let Pos { row, col } = pos.into();
 
@@ -85,8 +95,8 @@ impl Dof {
             .copied()
     }
 
-    /// very bulky way to swap two keys on a layout. Do not use this anywhere where performance is
-    /// even remotely important.
+    /// Swaps two keys on a layout, provided the `KeyPos`es provided are valid. Useful for what it does,
+    /// but using this where performance is even remotely important is _strongly discouraged_.
     pub fn swap(
         &mut self,
         keypos1: impl Into<KeyPos>,

@@ -1,3 +1,5 @@
+//! Just exports everything the library offers
+
 pub use crate::{
     dofinitions::{
         DofinitionError, Finger, Key, KeyboardType, NamedFingering, Shape, SpecialKey,
