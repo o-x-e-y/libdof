@@ -365,18 +365,93 @@ impl DescriptiveKey {
         }
     }
 
-    pub fn is_left_hand(&self) -> bool {
-        use Finger::*;
-
-        matches!(self.finger, LP | LR | LM | LI | LT)
+    pub fn keypos(&self) -> KeyPos {
+        (self.layer.as_str(), (self.row, self.col)).into()
     }
 
     pub fn pos(&self) -> Pos {
         (self.row, self.col).into()
     }
 
-    pub fn keypos(&self) -> KeyPos {
-        (self.layer.as_str(), (self.row, self.col)).into()
+    pub fn row(&self) -> usize {
+        self.row
+    }
+
+    pub fn col(&self) -> usize {
+        self.col
+    }
+
+    pub fn finger(&self) -> Finger {
+        self.finger
+    }
+
+    pub fn output(&self) -> &Key {
+        &self.output
+    }
+
+    pub fn layer_name(&self) -> &str {
+        &self.layer
+    }
+
+    pub fn is_on_finger(&self, finger: Finger) -> bool {
+        self.finger == finger
+    }
+
+    pub fn is_on_fingers(&self, fingers: &[Finger]) -> bool {
+        fingers
+            .into_iter()
+            .any(|f| self.finger == *f)
+    }
+
+    pub fn is_on_left_hand(&self) -> bool {
+        use Finger::*;
+
+        matches!(self.finger, LP | LR | LM | LI | LT)
+    }
+
+    pub fn is_on_layer(&self, layer: &str) -> bool {
+        self.layer == layer
+    }
+
+    pub fn is_char_key(&self) -> bool {
+        matches!(self.output, Key::Char(_))
+    }
+
+    pub fn is_word_key(&self) -> bool {
+        matches!(self.output, Key::Word(_))
+    }
+
+    pub fn is_empty_key(&self) -> bool {
+        matches!(self.output, Key::Empty)
+    }
+
+    pub fn is_transparent_key(&self) -> bool {
+        matches!(self.output, Key::Transparent)
+    }
+
+    pub fn is_layer_key(&self) -> bool {
+        matches!(self.output, Key::Layer { name: _ })
+    }
+
+    pub fn char_output(&self) -> Option<char> {
+        match self.output {
+            Key::Char(c) => Some(c),
+            _ => None
+        }
+    }
+
+    pub fn word_output(&self) -> Option<&str> {
+        match &self.output {
+            Key::Word(s) => Some(s),
+            _ => None
+        }
+    }
+
+    pub fn layer_output(&self) -> Option<&str> {
+        match &self.output {
+            Key::Layer { name } => Some(name),
+            _ => None
+        }
     }
 }
 
