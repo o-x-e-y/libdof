@@ -352,8 +352,8 @@ pub struct DofError(#[source] Box<DofErrorInner>);
 
 impl DofError {
     /// Allows users of the crate to create their own error messages if needed.
-    pub fn custom(msg: String) -> Self {
-        DofError(Box::new(DErr::Custom(msg)))
+    pub fn custom(msg: &str) -> Self {
+        DofError(Box::new(DErr::Custom(msg.into())))
     }
 }
 
