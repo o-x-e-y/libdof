@@ -336,6 +336,8 @@ enum DofErrorInner {
     IncompatibleFingeringShape,
     #[error("The provided layout + anchor doesn't fit in the given fingering")]
     LayoutDoesntFit,
+    #[error("{0}")]
+    Custom(String)
 }
 
 use DofErrorInner as DErr;
@@ -347,6 +349,13 @@ use DofErrorInner as DErr;
 #[derive(Debug, Error, PartialEq)]
 #[error("{0}")]
 pub struct DofError(#[source] Box<DofErrorInner>);
+
+impl DofError {
+    /// Allows users of the crate to create their own error messages if needed.
+    pub fn custom(msg: String) -> Self {
+        DofError(Box::new(DErr::Custom(msg)))
+    }
+}
 
 impl From<DofErrorInner> for DofError {
     fn from(value: DofErrorInner) -> Self {
