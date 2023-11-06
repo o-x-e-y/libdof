@@ -39,8 +39,8 @@ impl Dof {
         &self.name
     }
 
-    pub fn authors(&self) -> Option<&Vec<String>> {
-        self.authors.as_ref()
+    pub fn authors(&self) -> Option<&[String]> {
+        self.authors.as_deref()
     }
 
     pub fn board(&self) -> &KeyboardType {
