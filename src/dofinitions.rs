@@ -311,9 +311,13 @@ impl Shape {
         self.0.len()
     }
 
-    /// If all rows are <= the provided row, one shape fits in another
-    pub fn fits_in(&self, cmp: Self) -> bool {
-        self.inner().iter().zip(cmp.inner()).all(|(r, c)| r <= c)
+    /// If all rows of this shape <= the rows of the destination, it fits into the other
+    pub fn fits_in(&self, cmp: &Self) -> bool {
+        if cmp.row_count() > self.row_count() {
+            true
+        } else {
+            self.inner().iter().zip(cmp.inner()).all(|(r, c)| r <= c)
+        }
     }
 }
 
