@@ -436,11 +436,9 @@ impl Fingering {
                 .into_iter()
                 .zip(desired_shape.into_inner())
                 .map(|(row, len)| {
-                    let row = &row[x..(x + len)];
-
-                    match row.len() >= len {
-                        true => Ok(row.to_vec()),
-                        false => Err(DErr::LayoutDoesntFit.into()),
+                    match (x + len < row.len(), row.len() >= len) {
+                        (true, true) => Ok((&row[x..(x + len)]).to_vec()),
+                        _ => Err(DErr::LayoutDoesntFit.into()),
                     }
                 })
                 .collect::<Result<Vec<_>, DofError>>()
