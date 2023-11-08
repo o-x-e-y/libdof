@@ -72,7 +72,7 @@ impl Dof {
             .collect::<Vec<_>>()
     }
 
-    /// Get all keys for a given `Pos`, one for each layer. 
+    /// Get all keys for a given `Pos`, one for each layer.
     pub fn tower(&self, pos: impl Into<Pos>) -> Vec<Key> {
         let pos = pos.into();
 

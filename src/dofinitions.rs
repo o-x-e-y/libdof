@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use crate::{Fingering, Anchor};
+use crate::{Anchor, Fingering};
 
 /// Error subtype for the [`dofinitions`](crate::dofinitions) module. Can be seamlessly converted into `DofError`
 /// using the `?` operator.
@@ -139,7 +139,7 @@ pub enum SpecialKey {
 ///     - `Key::Char('~')` and `Key::Char('*')` if they contain `\\~` and `\\*` respectively,
 ///     - `Key::Special` based on their names in the readme. You can also check the `FromStr`
 ///        implementation itself,
-///     - `Key::Layer` if it leads with an `@`. 
+///     - `Key::Layer` if it leads with an `@`.
 ///     - `Key::Word` with its first character removed if it starts with `#`, `\\#` or`\\@`,
 ///     - `Key::Word` otherwise.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -313,8 +313,7 @@ impl Shape {
 
     /// If all rows are <= the provided row, one shape fits in another
     pub fn fits_in(&self, cmp: Self) -> bool {
-        self.inner().iter().zip(cmp.inner())
-        .all(|(r, c)| r <= c)
+        self.inner().iter().zip(cmp.inner()).all(|(r, c)| r <= c)
     }
 }
 

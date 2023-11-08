@@ -1,8 +1,8 @@
 //! The .dof file format is a json compatible format with specified fields describing any keyboard layout,
 //! including some defaults.
-//! 
+//!
 //! It has a set amount of (sometimes optional) fields:
-//! 
+//!
 //! * `name`: name of the layout    
 //! * `[author]`: author of the layout   
 //! * `board`: keyboard type the layout is made for. Any value is allowed, but a few values have special
@@ -11,7 +11,7 @@
 //!     - `iso`
 //!     - `ortho`
 //!     - `colstag`
-//! * `[date]`: date the layout was created. 
+//! * `[date]`: date the layout was created.
 //! * `[tags]`: array of strings containing relevant tags the layout could have.
 //! * `[description]`: string containing some of the author's thoughts.
 //! * `[link]`: url to a page with more information about the layout.
@@ -33,8 +33,8 @@
 //!         - A word key with its first character removed if it leads with `#`, `\\#` or`\\@`, for example
 //! `\\@altgr` would output `@altgr` rather than become an altgr layer key,
 //!         - A word key, which outputs multiple characters at the same time, otherwise.
-//! 
-//! 
+//!
+//!
 //!     All layer names are allowed though two are reserved, being:
 //!     - `main` (mandatory)
 //!     - `shift`
@@ -42,7 +42,7 @@
 //!     While main is mandatory to be filled, shift can be elided and will follow qwerty's
 //! capitalization scheme. Any shape is allowed, but if you use a standard 3x10 shape, you may be
 //! able to elide a fingermap (more on this below).
-//! 
+//!
 //! * `fingering`: specifies which finger presses which key. It's formatted the same as the
 //! layers object, and it should have the exact same shape (it will error otherwise):
 //!     - `LP` or `0`: left pinky
@@ -66,7 +66,7 @@
 //!     - board = colstag, main layer shap = 3x10, allowed fingerings: traditional, standard
 //!   
 //!     If any other value is provided, it should error.
-//! 
+//!
 //! ## Special modifier values:
 //! * `esc` => `Esc`,
 //! * `repeat`, `rpt` => `Repeat`,
@@ -100,11 +100,11 @@ use dofinitions::*;
 /// A struct to represent the dof keyboard layout spec. This struct is useful for interacting with dofs
 /// and parsing to/from .dof using [`serde_json`](https://crates.io/crates/serde_json). For converting
 /// other formats into dofs, consider taking a look at [`DofIntermediate`](crate::DofIntermediate).
-/// 
+///
 /// # Example
-/// 
+///
 /// Parsing into dof and getting the name of the layout:
-/// 
+///
 /// ```
 /// # use serde_json;
 /// # use libdof::Dof;
@@ -257,12 +257,12 @@ impl TryFrom<DofIntermediate> for Dof {
 
         let anchor = match inter.anchor {
             None => inter.board.anchor(),
-            Some(a) => a
+            Some(a) => a,
         };
 
         let languages = match inter.languages {
             Some(l) => l,
-            None => vec![Language::default()]
+            None => vec![Language::default()],
         };
 
         Ok(Self {
@@ -300,7 +300,7 @@ impl From<Dof> for DofIntermediate {
 
         let anchor = match dof.board.anchor() {
             a if a == dof.anchor => None,
-            a => Some(a)
+            a => Some(a),
         };
 
         DofIntermediate {
@@ -337,7 +337,7 @@ enum DofErrorInner {
     #[error("The provided layout + anchor doesn't fit in the given fingering")]
     LayoutDoesntFit,
     #[error("{0}")]
-    Custom(String)
+    Custom(String),
 }
 
 use DofErrorInner as DErr;
@@ -378,7 +378,7 @@ impl From<DofInteractionError> for DofError {
 /// Used to represent the language(s) a layout is optimized for, containing the name of a language as well as
 /// a weight, the latter being useful for layouts that are made for a combination of languages with some
 /// amount of % split.
-/// 
+///
 /// The Default implementation of Language is English with weight 100.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Language {
@@ -406,7 +406,7 @@ impl Language {
     pub fn only(language: &str) -> Self {
         Self {
             language: language.into(),
-            weight: 100
+            weight: 100,
         }
     }
 }
@@ -452,7 +452,7 @@ impl Fingering {
 }
 
 /// Abstraction over the way an actual .dof file is allowed to represent the fingering of a layout, being either
-/// explicit through providing a list of fingerings for each key, or implicit, by providing a name. 
+/// explicit through providing a list of fingerings for each key, or implicit, by providing a name.
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -546,9 +546,7 @@ impl DescriptiveKey {
 
     /// Check if the key is on any of the provided fingers.
     pub fn is_on_fingers(&self, fingers: &[Finger]) -> bool {
-        fingers
-            .into_iter()
-            .any(|f| self.finger == *f)
+        fingers.into_iter().any(|f| self.finger == *f)
     }
 
     /// Check if the key is on left hand, including left thumb.
@@ -597,7 +595,7 @@ impl DescriptiveKey {
     pub fn char_output(&self) -> Option<char> {
         match self.output {
             Key::Char(c) => Some(c),
-            _ => None
+            _ => None,
         }
     }
 
@@ -605,7 +603,7 @@ impl DescriptiveKey {
     pub fn word_output(&self) -> Option<&str> {
         match &self.output {
             Key::Word(s) => Some(s),
-            _ => None
+            _ => None,
         }
     }
 
@@ -613,7 +611,7 @@ impl DescriptiveKey {
     pub fn layer_output(&self) -> Option<&str> {
         match &self.output {
             Key::Layer { name } => Some(name),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -652,7 +650,7 @@ impl DofIntermediate {
     /// * Symbols and numbers are given their qwerty uppercase. This means that `7` becomes `&`, `'`
     /// becomes `"`, `[` becomes `{`, etc,
     /// * Special keys become Transparent.
-    /// 
+    ///
     /// **Words are unaffected!** This means that if you would like Word keys to output something different,
     /// you must specify a custom shift layer.
     pub fn generate_shift_layer(main: &Layer) -> Layer {
@@ -715,7 +713,7 @@ impl DofIntermediate {
 
                 let anchor = match self.anchor {
                     Some(a) => a,
-                    None => self.board.anchor()
+                    None => self.board.anchor(),
                 };
 
                 fingering.resized_fingering(anchor, main.shape())
