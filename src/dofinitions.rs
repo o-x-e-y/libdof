@@ -310,6 +310,12 @@ impl Shape {
     pub fn row_count(&self) -> usize {
         self.0.len()
     }
+
+    /// If all rows are <= the provided row, one shape fits in another
+    pub fn fits_in(&self, cmp: Self) -> bool {
+        self.inner().iter().zip(cmp.inner())
+        .all(|(r, c)| r <= c)
+    }
 }
 
 /// Some default form factors. Options are Ansi, Iso, Ortho (being 3x10 + 3 thumb keys per thumb), Colstag
