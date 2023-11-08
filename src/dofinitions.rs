@@ -295,6 +295,12 @@ impl From<Vec<usize>> for Shape {
     }
 }
 
+impl<const N: usize> From<[usize; N]> for Shape {
+    fn from(value: [usize; N]) -> Self {
+        Shape(value.into())
+    }
+}
+
 impl Shape {
     /// Get a slice of all rows in the shape.
     pub fn inner(&self) -> &[usize] {
@@ -313,12 +319,20 @@ impl Shape {
 
     /// If all rows of this shape <= the rows of the destination, it fits into the other
     pub fn fits_in(&self, cmp: &Self) -> bool {
-        if cmp.row_count() > self.row_count() {
-            true
+        if self.row_count() > cmp.row_count() {
+            false
         } else {
             self.inner().iter().zip(cmp.inner()).all(|(r, c)| r <= c)
         }
     }
+}
+
+#[test]
+fn test_fits_in() {
+    let s1 = Shape::from([13, 11, 10]);
+    let s2 = Shape::from([12, 12, 12, 6]);
+
+    assert!(s1.fits_in(&s2))
 }
 
 /// Some default form factors. Options are Ansi, Iso, Ortho (being 3x10 + 3 thumb keys per thumb), Colstag
