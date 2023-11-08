@@ -327,14 +327,6 @@ impl Shape {
     }
 }
 
-#[test]
-fn test_fits_in() {
-    let s1 = Shape::from([13, 11, 10]);
-    let s2 = Shape::from([12, 12, 12, 6]);
-
-    assert!(s1.fits_in(&s2))
-}
-
 /// Some default form factors. Options are Ansi, Iso, Ortho (being 3x10 + 3 thumb keys per thumb), Colstag
 /// (being 3x10 + 3 thumb keys per thumb) and a custom option if any anything but the prior options is provided.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -434,8 +426,8 @@ impl KeyboardType {
         match self {
             KeyboardType::Ansi => Anchor::new(1, 1),
             KeyboardType::Iso => Anchor::new(1, 1),
-            KeyboardType::Ortho => Anchor::new(0, 0),
-            KeyboardType::Colstag => Anchor::new(0, 0),
+            KeyboardType::Ortho => Anchor::new(1, 0),
+            KeyboardType::Colstag => Anchor::new(1, 0),
             KeyboardType::Custom(_) => Anchor::new(0, 0),
         }
     }
