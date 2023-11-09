@@ -563,55 +563,46 @@ impl DescriptiveKey {
     /// Check if the key is of type [`Key::Char`](crate::dofinitions::Key::Char) which outputs
     /// a single character.
     pub fn is_char_key(&self) -> bool {
-        matches!(self.output, Key::Char(_))
+        self.output.is_char()
     }
 
     /// Check if the key is of type [`Key::Word`](crate::dofinitions::Key::Word) which outputs a specific
     /// string.
     pub fn is_word_key(&self) -> bool {
-        matches!(self.output, Key::Word(_))
+        self.output.is_word()
     }
 
     /// Check if the key is of type [`Key::Empty`](crate::dofinitions::Key::Empty) which doesn't output
     /// anything.
     pub fn is_empty_key(&self) -> bool {
-        matches!(self.output, Key::Empty)
+        self.output.is_empty()
     }
 
     /// Check if the key is of type [`Key::Transparent`](crate::dofinitions::Key::Char) which outputs
     /// whatever it is the main layer outputs in that position.
     pub fn is_transparent_key(&self) -> bool {
-        matches!(self.output, Key::Transparent)
+        self.output.is_transparent()
     }
 
     /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer) which holds the name.
     /// of a layer on the layout
     pub fn is_layer_key(&self) -> bool {
-        matches!(self.output, Key::Layer { name: _ })
+        self.output.is_layer()
     }
 
     /// Get the output if the key is of type [`Key::Char`](crate::dofinitions::Key::Char).
     pub fn char_output(&self) -> Option<char> {
-        match self.output {
-            Key::Char(c) => Some(c),
-            _ => None,
-        }
+        self.output.char_output()
     }
 
     /// Get the output if the key is of type [`Key::Word`](crate::dofinitions::Key::Word).
     pub fn word_output(&self) -> Option<&str> {
-        match &self.output {
-            Key::Word(s) => Some(s),
-            _ => None,
-        }
+        self.output.word_output()
     }
 
     /// Get the layer name if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
     pub fn layer_output(&self) -> Option<&str> {
-        match &self.output {
-            Key::Layer { name } => Some(name),
-            _ => None,
-        }
+        self.output.layer_output()
     }
 }
 

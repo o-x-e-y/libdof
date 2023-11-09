@@ -192,6 +192,60 @@ impl Key {
             k => k.clone(),
         }
     }
+
+    /// Check if the key is of type [`Key::Char`](crate::dofinitions::Key::Char) which outputs
+    /// a single character.
+    pub fn is_char(&self) -> bool {
+        matches!(self, Key::Char(_))
+    }
+
+    /// Check if the key is of type [`Key::Word`](crate::dofinitions::Key::Word) which outputs a specific
+    /// string.
+    pub fn is_word(&self) -> bool {
+        matches!(self, Key::Word(_))
+    }
+
+    /// Check if the key is of type [`Key::Empty`](crate::dofinitions::Key::Empty) which doesn't output
+    /// anything.
+    pub fn is_empty(&self) -> bool {
+        matches!(self, Key::Empty)
+    }
+
+    /// Check if the key is of type [`Key::Transparent`](crate::dofinitions::Key::Char) which outputs
+    /// whatever it is the main layer outputs in that position.
+    pub fn is_transparent(&self) -> bool {
+        matches!(self, Key::Transparent)
+    }
+
+    /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer) which holds the name.
+    /// of a layer on the layout
+    pub fn is_layer(&self) -> bool {
+        matches!(self, Key::Layer { name: _ })
+    }
+
+    /// Get the output if the key is of type [`Key::Char`](crate::dofinitions::Key::Char).
+    pub fn char_output(&self) -> Option<char> {
+        match self {
+            Key::Char(c) => Some(*c),
+            _ => None,
+        }
+    }
+
+    /// Get the output if the key is of type [`Key::Word`](crate::dofinitions::Key::Word).
+    pub fn word_output(&self) -> Option<&str> {
+        match &self {
+            Key::Word(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    /// Get the layer name if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
+    pub fn layer_output(&self) -> Option<&str> {
+        match &self {
+            Key::Layer { name } => Some(name),
+            _ => None,
+        }
+    }
 }
 
 impl Display for Key {
