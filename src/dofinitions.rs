@@ -8,6 +8,7 @@ use crate::{Anchor, Fingering};
 
 /// Error subtype for the [`dofinitions`](crate::dofinitions) module. Can be seamlessly converted into `DofError`
 /// using the `?` operator.
+#[allow(missing_docs)]
 #[derive(Debug, Error, PartialEq)]
 pub enum DofinitionError {
     #[error("Couldn't parse Finger from '{0}'")]
@@ -29,15 +30,25 @@ pub enum DofinitionError {
 /// `RP`= 9
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Finger {
+    /// Left Pinky
     LP,
+    /// Left Ring
     LR,
+    /// Left Middle
     LM,
+    /// Left Index
     LI,
+    /// Left Thumb
     LT,
+    /// Right Thumb
     RT,
+    /// Right Index
     RI,
+    /// Right Middle
     RM,
+    /// Right Ring
     RR,
+    /// Right Pinky
     RP,
 }
 
@@ -75,8 +86,11 @@ impl FromStr for Finger {
 /// uses `standard` and `traditional` for `Traditional`, and `angle` for `Angle`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NamedFingering {
+    /// Traditional fingering
     Traditional,
+    /// Fingering for angle mod
     Angle,
+    /// Any custom type of fingering. This is technically valid in a .dof, but not supported to be worked with.
     Custom(String),
 }
 
@@ -108,6 +122,7 @@ impl FromStr for NamedFingering {
 
 /// Covers a wide range of keys that don't necessarily output characters, but are still commonly found on a
 /// keyboard. Shift is meant to function the same as a `Key::Layer { layer: "shift" }` key.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SpecialKey {
     Esc,
@@ -142,6 +157,7 @@ pub enum SpecialKey {
 ///     - `Key::Layer` if it leads with an `@`.
 ///     - `Key::Word` with its first character removed if it starts with `#`, `\\#` or`\\@`,
 ///     - `Key::Word` otherwise.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Key {
     Empty,
@@ -153,6 +169,7 @@ pub enum Key {
 }
 
 impl Key {
+    /// Turns lowercase characters into their qwerty shift output, and turns `Special`` keys `Transparent`.
     pub fn shifted(&self) -> Self {
         use Key::*;
 
@@ -383,6 +400,7 @@ impl Shape {
 
 /// Some default form factors. Options are Ansi, Iso, Ortho (being 3x10 + 3 thumb keys per thumb), Colstag
 /// (being 3x10 + 3 thumb keys per thumb) and a custom option if any anything but the prior options is provided.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum KeyboardType {
     Ansi,
@@ -393,6 +411,7 @@ pub enum KeyboardType {
 }
 
 impl KeyboardType {
+    /// Get the shape of a certain keyboard type.
     pub fn shape(&self) -> Shape {
         self.fingering(&NamedFingering::Traditional)
             .unwrap()

@@ -22,6 +22,7 @@ impl From<(usize, usize)> for Pos {
 
 /// Represents a layer name along with a row and column on a keyboard. Can also be created by `(name, Pos).into()`
 /// or `(name, (row, col)).into()`.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct KeyPos {
     pub layer: String,
@@ -29,6 +30,7 @@ pub struct KeyPos {
 }
 
 impl KeyPos {
+    /// Get a new `KeyPos`.
     pub fn new(layer: &str, pos: Pos) -> Self {
         let layer = layer.into();
         Self { layer, pos }
@@ -50,6 +52,7 @@ impl From<(&str, (usize, usize))> for KeyPos {
 
 /// Error subtype of the [`interaction`](crate::interaction) module. Can be converted into `DofError` seamlessly
 /// using the `?` operator.
+#[allow(missing_docs)]
 #[derive(Debug, Error, Clone, PartialEq)]
 pub enum DofInteractionError {
     #[error("the provided layer name '{0}' is invalid")]
