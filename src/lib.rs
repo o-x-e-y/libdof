@@ -427,25 +427,26 @@ impl Fingering {
         Anchor(x, y): Anchor,
         desired_shape: Shape,
     ) -> Result<Fingering, DofError> {
-        let (x, y) = (x as usize, y as usize);
+        let (offset_x, offset_y) = (x as usize, y as usize);
 
-        if y + desired_shape.row_count() < self.0.len() {
-            let y_range = y..(y + desired_shape.row_count());
+        let anchor_resized = self
+            .inner()
+            .get(offset_y..)
+            .ok_or(DErr::AnchorBiggerThanLayout)?
+            .iter()
+            .map(|r| r.get(offset_x..).ok_or(DErr::AnchorBiggerThanLayout))
+            .collect::<Result<Vec<_>, _>>()?;
 
-            self.0[y_range]
+        anchor_resized
                 .into_iter()
                 .zip(desired_shape.into_inner())
-                .map(|(row, len)| {
-                    match (x + len < row.len(), row.len() >= len) {
-                        (true, true) => Ok((&row[x..(x + len)]).to_vec()),
-                        _ => Err(DErr::LayoutDoesntFit.into()),
-                    }
+            .map(|(row, shape_size)| {
+                row.get(..shape_size)
+                    .ok_or(DErr::LayoutDoesntFit.into())
+                    .map(|v| v.to_vec())
                 })
-                .collect::<Result<Vec<_>, DofError>>()
+            .collect::<Result<Vec<_>, _>>()
                 .map(Into::into)
-        } else {
-            Err(DErr::LayoutDoesntFit.into())
-        }
     }
 }
 
