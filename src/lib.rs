@@ -81,6 +81,11 @@ impl Dof {
         self.description.as_deref()
     }
 
+    /// Get the optional link of the layout.
+    pub fn link(&self) -> Option<&str> {
+        self.link.as_deref()
+    }
+
     /// Get a slice of [Language](crate::Language) this layout was intended to be used for.
     pub fn languages(&self) -> &[Language] {
         &self.languages
