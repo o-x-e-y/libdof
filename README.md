@@ -12,7 +12,6 @@ properties (explained further below):
     - `ortho`
     - `colstag`
 * `[date]`: date the layout was created. 
-* `[tags]`: array of strings containing relevant tags the layout could have.
 * `[description]`: string containing some of the author's thoughts.
 * `[link]`: url to a page with more information about the layout.
 * `layers`: specifies all layers on the layout. They're of the form of `name: <layer>`, and

@@ -5,7 +5,7 @@
     "year": 1878,
     "description": "the OG. Without Qwerty, none of this would be necessary.",
     "link": "https://en.wikipedia.org/wiki/QWERTY",
-    "anchor": [1, 1],
+    "anchor": [0, 0],
     "layers": {
         "main": [
             "` 1 2 3 4 5  6 7 8 9 0 - = bsp",
