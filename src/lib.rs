@@ -97,6 +97,11 @@ impl Dof {
         self.anchor
     }
 
+    /// Get the shape of the fingering and layers of the dof
+    pub fn shape(&self) -> Shape {
+        self.fingering().shape()
+    }
+
     /// Get the fingering of the keyboard, which specifies for each coordinate which finger is supposed to press
     /// what key.
     pub fn fingering(&self) -> &Fingering {
