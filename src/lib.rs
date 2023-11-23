@@ -36,7 +36,7 @@ use dofinitions::*;
 /// ```
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
 pub struct Dof {
     name: String,
@@ -311,7 +311,7 @@ impl From<DofInteractionError> for DofError {
 /// amount of % split.
 ///
 /// The Default implementation of Language is English with weight 100.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Language {
     language: String,
     weight: usize,
@@ -345,7 +345,7 @@ impl Language {
 
 /// Struct that represents the fingering of each layout. It is an abstraction over `Vec<Vec<Finger>>`.
 #[serde_as]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Fingering(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>);
 
 impl_keyboard!(Fingering, Finger, FingeringStrAsRow);
@@ -385,7 +385,7 @@ impl Fingering {
 /// Abstraction over the way an actual .dof file is allowed to represent the fingering of a layout, being either
 /// explicit through providing a list of fingerings for each key, or implicit, by providing a name.
 #[serde_as]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ParsedFingering {
     /// Covers the case where fingering is specified explicitly for each key
@@ -397,7 +397,7 @@ pub enum ParsedFingering {
 
 /// An abstraction of `Vec<Vec<Key>>` to represent a layer on a layout.
 #[serde_as]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Layer(#[serde_as(as = "Vec<LayerStrAsRow>")] Vec<Vec<Key>>);
 
 impl_keyboard!(Layer, Key, LayerStrAsRow);
@@ -407,7 +407,7 @@ impl_keyboard!(Layer, Key, LayerStrAsRow);
 /// ANSI keyboard, the `Anchor` would be (1, 1), as the top left corner of the `Dof` (being where qwerty `q`
 /// is) would need to be shifted one left and one up to be in the top left corner of the physical keyboard.
 /// Therefore, the default value of an anchor is dependent on the physical keyboard it is applied to.
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Anchor(u8, u8);
 
 impl Anchor {
@@ -428,7 +428,7 @@ impl Anchor {
 }
 
 /// A Key with metadata attached. These are produced by calling [`Dof::keys()`](crate::Dof::keys()).
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct DescriptiveKey {
     output: Key,
     layer: String,
@@ -559,7 +559,7 @@ impl DescriptiveKey {
 #[allow(missing_docs)]
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DofIntermediate {
     pub name: String,
     pub authors: Option<Vec<String>>,

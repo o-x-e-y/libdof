@@ -28,7 +28,7 @@ pub enum DofinitionError {
 /// Represents a finger. Implements `ToString` and `FromStr`, where each finger can either be represented
 /// in string form as `LP`, `LR` (left pinky, left ring) or as a number where `LP`= 0, `LR`= 1 up to
 /// `RP`= 9
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Finger {
     /// Left Pinky
     LP,
@@ -84,7 +84,7 @@ impl FromStr for Finger {
 /// Represents known fingerings with names. Currently these are `Traditional` and `Angle`. A `Custom` type
 /// is also specified, though this isn't particularly useful in use with the rest of the library. `FromStr`
 /// uses `standard` and `traditional` for `Traditional`, and `angle` for `Angle`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NamedFingering {
     /// Traditional fingering
     Traditional,
@@ -123,7 +123,7 @@ impl FromStr for NamedFingering {
 /// Covers a wide range of keys that don't necessarily output characters, but are still commonly found on a
 /// keyboard. Shift is meant to function the same as a `Key::Layer { layer: "shift" }` key.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SpecialKey {
     Esc,
     Repeat,
@@ -158,7 +158,7 @@ pub enum SpecialKey {
 ///     - `Key::Word` with its first character removed if it starts with `#`, `\\#` or`\\@`,
 ///     - `Key::Word` otherwise.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Key {
     Empty,
     Transparent,
@@ -357,7 +357,7 @@ where
 }
 
 /// Abstraction of `Vec<usize>` where each index represents a row on a layout with a specific amount of keys.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Shape(Vec<usize>);
 
 impl From<Vec<usize>> for Shape {
@@ -401,7 +401,7 @@ impl Shape {
 /// Some default form factors. Options are Ansi, Iso, Ortho (being 3x10 + 3 thumb keys per thumb), Colstag
 /// (being 3x10 + 3 thumb keys per thumb) and a custom option if any anything but the prior options is provided.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum KeyboardType {
     Ansi,
     Iso,

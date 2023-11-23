@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// Represents a (row, column) position on a keyboard. Can be created by `(num, num).into()`.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Pos {
     row: usize,
     col: usize,
@@ -23,7 +23,7 @@ impl From<(usize, usize)> for Pos {
 /// Represents a layer name along with a row and column on a keyboard. Can also be created by `(name, Pos).into()`
 /// or `(name, (row, col)).into()`.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeyPos {
     pub layer: String,
     pub pos: Pos,
