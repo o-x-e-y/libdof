@@ -344,10 +344,10 @@ where
                 "fn" => Special(Fn),
                 "backspace" | "bksp" | "bcsp" | "bsp" => Special(Backspace),
                 "del" => Special(Del),
-                _ if s.starts_with("@") => Layer {
+                _ if s.starts_with('@') => Layer {
                     name: s.chars().skip(1).collect(),
                 },
-                _ if s.starts_with("#") || s.starts_with("\\#") || s.starts_with("\\@") => {
+                _ if s.starts_with('#') || s.starts_with("\\#") || s.starts_with("\\@") => {
                     Word(s.chars().skip(1).collect())
                 }
                 _ => Word(s.into()),

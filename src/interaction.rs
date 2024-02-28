@@ -93,8 +93,7 @@ impl Dof {
         self.fingering()
             .rows()
             .nth(row)?
-            .into_iter()
-            .nth(col)
+            .get(col)
             .copied()
     }
 

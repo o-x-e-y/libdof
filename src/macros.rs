@@ -54,7 +54,7 @@ macro_rules! impl_keyboard {
             |line: String| {
                 line.split_whitespace()
                     .map(|s| s.parse::<$ret>().map_err(Into::into))
-                    .collect::<Result<Vec<_>, crate::dofinitions::DofinitionError>>()
+                    .collect::<Result<Vec<_>, $crate::dofinitions::DofinitionError>>()
             }
         );
     };

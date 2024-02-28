@@ -492,7 +492,7 @@ impl DescriptiveKey {
 
     /// Check if the key is on any of the provided fingers.
     pub fn is_on_fingers(&self, fingers: &[Finger]) -> bool {
-        fingers.into_iter().any(|f| self.finger == *f)
+        fingers.iter().any(|f| self.finger == *f)
     }
 
     /// Check if the key is on left hand, including left thumb.
@@ -594,7 +594,7 @@ impl DofIntermediate {
     pub fn generate_shift_layer(main: &Layer) -> Layer {
         main.0
             .iter()
-            .map(|row| row.into_iter().map(|k| k.shifted()).collect::<Vec<_>>())
+            .map(|row| row.iter().map(|k| k.shifted()).collect::<Vec<_>>())
             .collect::<Vec<_>>()
             .into()
     }
@@ -604,14 +604,13 @@ impl DofIntermediate {
     pub fn validate_layer_keys(&self, main: &Layer) -> Result<(), DofError> {
         let layers_dont_exist = main
             .keys()
-            .map(|k| match k {
+            .filter_map(|k| match k {
                 Key::Layer { name: n } if !self.layers.contains_key(n) => Some(n.clone()),
                 _ => None,
             })
-            .flatten()
             .collect::<Vec<_>>();
 
-        if layers_dont_exist.len() == 0 {
+        if layers_dont_exist.is_empty() {
             Ok(())
         } else {
             Err(DErr::LayersNotFound(layers_dont_exist).into())
@@ -630,7 +629,7 @@ impl DofIntermediate {
             .map(|(name, _)| name.clone())
             .collect::<Vec<_>>();
 
-        if incompatible_shapes.len() == 0 {
+        if incompatible_shapes.is_empty() {
             Ok(())
         } else {
             Err(DErr::IncompatibleLayerShapes(incompatible_shapes).into())
