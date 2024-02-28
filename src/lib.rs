@@ -884,7 +884,7 @@ mod tests {
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
             languages: None,
             link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
-            anchor: Some(Anchor::new(1, 1)),
+            anchor: Some(Anchor::new(0, 0)),
             layers: BTreeMap::from_iter([
                 (
                     "main".into(),
