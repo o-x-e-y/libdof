@@ -90,11 +90,7 @@ impl Dof {
     pub fn finger(&self, pos: impl Into<Pos>) -> Option<Finger> {
         let Pos { row, col } = pos.into();
 
-        self.fingering()
-            .rows()
-            .nth(row)?
-            .get(col)
-            .copied()
+        self.fingering().0.get(row)?.get(col).copied()
     }
 
     /// Swaps two keys on a layout, provided the `KeyPos`es provided are valid. Useful for what it does,

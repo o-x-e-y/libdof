@@ -118,16 +118,20 @@ impl Dof {
         self.fingering_name.as_ref()
     }
 
-    /// Get the main layer of the layout. This function can be assumed to be infallible if you
-    /// serialized into `Dof`, because creating a `Dof` without a main layer is invalid.
-    pub fn main_layer(&self) -> Option<&Layer> {
-        self.layers.get("main")
+    /// Get the main layer of the layout. Since creating a `Dof` without a main layer is impossible,
+    // it should never fail.
+    pub fn main_layer(&self) -> &Layer {
+        self.layers
+            .get("main")
+            .expect("Creating a Dof without a main layer should be impossible")
     }
 
-    /// Get the shift layer of the layout. This function can be assumed to be infallible if you
-    /// serialized into `Dof`, because creating a `Dof` without a main layer is invalid.
-    pub fn shift_layer(&self) -> Option<&Layer> {
-        self.layers.get("shift")
+    /// Get the shift layer of the layout. Since creating a `Dof` without a shift layer is impossible,
+    /// this should never fail
+    pub fn shift_layer(&self) -> &Layer {
+        self.layers
+            .get("shift")
+            .expect("Creating a Dof without a shift layer should be impossible")
     }
 
     /// Get a specific layer on the keyboard, if it exists.
