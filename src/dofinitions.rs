@@ -161,8 +161,9 @@ pub enum SpecialKey {
 ///     - `Key::Word` with its first character removed if it starts with `#`, `\\#` or`\\@`,
 ///     - `Key::Word` otherwise.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub enum Key {
+    #[default]
     Empty,
     Transparent,
     Char(char),
@@ -362,7 +363,7 @@ where
 }
 
 /// Abstraction of `Vec<usize>` where each index represents a row on a layout with a specific amount of keys.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Shape(Vec<usize>);
 
 impl From<Vec<usize>> for Shape {
