@@ -23,6 +23,8 @@ pub enum DofinitionError {
     NonOverlappingShapesError(NamedFingering),
     #[error("The given fingering is unknown. Valid inputs are: angle, traditional")]
     UnknownNamedFingering,
+    #[error("{0}")]
+    ParseIntError(#[from] std::num::ParseIntError)
 }
 
 /// Represents a finger. Implements `ToString` and `FromStr`, where each finger can either be represented
