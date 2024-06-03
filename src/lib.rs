@@ -1158,7 +1158,13 @@ mod tests {
                     vec![LP, LP, LT, LT, LT, RT, RT, RP],
                 ]))
             },
-            heatmap: None,
+            heatmap: Some(Heatmap::from(vec![
+                vec![100; 14],
+                vec![100; 14],
+                vec![100; 13],
+                vec![85; 12],
+                vec![100; 8]
+            ])),
         };
 
         let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)
