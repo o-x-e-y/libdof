@@ -178,7 +178,7 @@ impl TryFrom<DofIntermediate> for Dof {
             _ => None,
         };
 
-        let has_generated_shift = if inter.layers.get("shift").is_none() {
+        let has_generated_shift = if !inter.layers.contains_key("shift") {
             inter.layers.insert(
                 "shift".into(),
                 DofIntermediate::generate_shift_layer(main_layer),
