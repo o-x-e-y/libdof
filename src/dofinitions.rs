@@ -54,6 +54,22 @@ pub enum Finger {
     RP,
 }
 
+impl Finger {
+    /// Array containing all 10 fingers in order from `LP` to `RP`.
+    pub const FINGERS: [Self; 10] = [
+        Self::LP, 
+        Self::LR, 
+        Self::LM, 
+        Self::LI, 
+        Self::LT, 
+        Self::RT, 
+        Self::RI, 
+        Self::RM, 
+        Self::RR, 
+        Self::RP
+    ];
+}
+
 impl Display for Finger {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
