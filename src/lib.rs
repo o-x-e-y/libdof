@@ -119,6 +119,11 @@ impl Dof {
         self.fingering_name.as_ref()
     }
 
+    /// Get the heatmap, if present
+    pub fn heatmap(&self) -> Option<&Heatmap> {
+        self.heatmap.as_ref()
+    }
+
     /// Get the main layer of the layout. Since creating a `Dof` without a main layer is impossible,
     // it should never fail.
     pub fn main_layer(&self) -> &Layer {
