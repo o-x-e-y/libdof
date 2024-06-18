@@ -52,7 +52,6 @@ pub struct Dof {
     // combos: Option<HashMap<String, String>>,
     fingering: Fingering,
     fingering_name: Option<NamedFingering>,
-    heatmap: Option<Heatmap>,
     has_generated_shift: bool,
 }
 
@@ -119,11 +118,6 @@ impl Dof {
         self.fingering_name.as_ref()
     }
 
-    /// Get the heatmap, if present
-    pub fn heatmap(&self) -> Option<&Heatmap> {
-        self.heatmap.as_ref()
-    }
-
     /// Get the main layer of the layout. Since creating a `Dof` without a main layer is impossible,
     // it should never fail.
     pub fn main_layer(&self) -> &Layer {
@@ -177,7 +171,6 @@ impl TryFrom<DofIntermediate> for Dof {
 
         inter.validate_layer_keys(main_layer)?;
         inter.validate_layer_shapes(main_layer)?;
-        inter.validate_heatmap_shape(main_layer)?;
 
         let explicit_fingering = inter.explicit_fingering(main_layer)?;
         let implicit_fingering = match inter.fingering.clone() {
@@ -217,7 +210,6 @@ impl TryFrom<DofIntermediate> for Dof {
             anchor,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
-            heatmap: inter.heatmap,
             has_generated_shift,
         })
     }
@@ -255,7 +247,6 @@ impl From<Dof> for DofIntermediate {
             layers: dof.layers,
             anchor,
             fingering,
-            heatmap: dof.heatmap
         }
     }
 }
@@ -280,8 +271,6 @@ enum DofErrorInner {
     LayoutDoesntFit,
     #[error("The anchor provided is bigger than the layout it is used for")]
     AnchorBiggerThanLayout,
-    #[error("The layer shapes do not match the heatmap shape")]
-    IncompatibleHeatmapShape,
     #[error("{0}")]
     Custom(String),
 }
@@ -416,13 +405,6 @@ pub enum ParsedFingering {
 pub struct Layer(#[serde_as(as = "Vec<LayerStrAsRow>")] Vec<Vec<Key>>);
 
 impl_keyboard!(Layer, Key, LayerStrAsRow);
-
-/// An abstraction of `Vec<Vec<i64>>` to represent an intended heatmap for a layout.
-#[serde_as]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Heatmap(#[serde_as(as = "Vec<HeatmapStrAsRow>")] Vec<Vec<i64>>);
-
-impl_keyboard!(Heatmap, i64, HeatmapStrAsRow);
 
 /// An anchor represents where the top left key on a `Dof` is compared to where it would be on a physical
 /// keyboard. For example, if you were to provide a 3x10 raster of letters but would like this applied to an
@@ -596,7 +578,6 @@ pub struct DofIntermediate {
     // pub alt_fingerings: Option<Vec<String>>,
     // pub combos: Option<HashMap<String, String>>,
     pub fingering: ParsedFingering,
-    pub heatmap: Option<Heatmap>,
 }
 
 impl DofIntermediate {
@@ -659,16 +640,6 @@ impl DofIntermediate {
         }
     }
 
-    /// Very simple validation check for the heatmap shape, if provided. It should be exactly
-    /// the same as the layer shapes.
-    pub fn validate_heatmap_shape(&self, main: &Layer) -> Result<(), DofError> {
-        match &self.heatmap {
-            Some(h) if h.shape() == main.shape() => Ok(()),
-            None => Ok(()),
-            _ => Err(DofErrorInner::IncompatibleHeatmapShape.into())
-        }
-    }
-
     /// Validation check to see if the provided fingering has the same shape as the main layer.
     /// If left implicit (by leaving just a name of a fingering, like `traditional` /// or `angle`)
     /// will try to generate a fingering with the same shape as the main layer.
@@ -709,7 +680,6 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
-            heatmap: None,
         };
 
         let v = Dof::try_from(minimal_test);
@@ -732,7 +702,6 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
-            heatmap: None,
         };
 
         let dof_minimal = serde_json::from_str::<DofIntermediate>(minimal_json)
@@ -855,7 +824,6 @@ mod tests {
                 .into()
             },
             fingering_name: Some(NamedFingering::Angle),
-            heatmap: None,
             has_generated_shift: true,
         };
 
@@ -887,7 +855,6 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
-            heatmap: None,
         };
 
         let s = serde_json::to_string_pretty(&minimal_test).unwrap();
@@ -1163,13 +1130,6 @@ mod tests {
                     vec![LP, LP, LT, LT, LT, RT, RT, RP],
                 ]))
             },
-            heatmap: Some(Heatmap::from(vec![
-                vec![100; 14],
-                vec![100; 14],
-                vec![100; 13],
-                vec![85; 12],
-                vec![100; 8]
-            ])),
         };
 
         let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)
