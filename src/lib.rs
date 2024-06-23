@@ -949,6 +949,152 @@ mod tests {
     }
 
     #[test]
+    fn parse_aptmak() {
+        use Finger::*;
+        use Key::*;
+
+        let aptmak_json = include_str!("../example_dofs/aptmak.dof");
+
+        let d = serde_json::from_str::<Dof>(aptmak_json).expect("Couldn't serialize as Dof");
+
+        let d_manual = Dof {
+            name: "Aptmak".into(),
+            authors: None,
+            board: PhysicalKeyboard::try_from(ParseKeyboard::Named(KeyboardType::Colstag))
+                .unwrap()
+                .resized(KeyboardType::Colstag.anchor(), vec![10, 10, 10, 6].into())
+                .unwrap()
+                .into(),
+            parsed_board: ParseKeyboard::Named(KeyboardType::Colstag),
+            year: None,
+            description: None,
+            languages: vec![Default::default()],
+            link: None,
+            anchor: KeyboardType::Colstag.anchor(),
+            layers: BTreeMap::from_iter([
+                (
+                    "main".into(),
+                    vec![
+                        vec![
+                            Char('v'),
+                            Char('w'),
+                            Char('f'),
+                            Char('p'),
+                            Char('b'),
+                            Char('j'),
+                            Char('l'),
+                            Char('u'),
+                            Char('y'),
+                            Char('\''),
+                        ],
+                        vec![
+                            Char('r'),
+                            Char('s'),
+                            Char('t'),
+                            Char('h'),
+                            Char('k'),
+                            Char('x'),
+                            Char('n'),
+                            Char('a'),
+                            Char('i'),
+                            Char('o'),
+                        ],
+                        vec![
+                            Char(';'),
+                            Char('c'),
+                            Char('g'),
+                            Char('d'),
+                            Char('q'),
+                            Char('z'),
+                            Char('m'),
+                            Char(','),
+                            Char('.'),
+                            Char('/'),
+                        ],
+                        vec![
+                            Empty,
+                            Special(SpecialKey::Space),
+                            Empty,
+                            Empty,
+                            Char('e'),
+                            Empty,
+                        ],
+                    ]
+                    .into(),
+                ),
+                (
+                    "shift".into(),
+                    vec![
+                        vec![
+                            Char('V'),
+                            Char('W'),
+                            Char('F'),
+                            Char('P'),
+                            Char('B'),
+                            Char('J'),
+                            Char('L'),
+                            Char('U'),
+                            Char('Y'),
+                            Char('"'),
+                        ],
+                        vec![
+                            Char('R'),
+                            Char('S'),
+                            Char('T'),
+                            Char('H'),
+                            Char('K'),
+                            Char('X'),
+                            Char('N'),
+                            Char('A'),
+                            Char('I'),
+                            Char('O'),
+                        ],
+                        vec![
+                            Char(':'),
+                            Char('C'),
+                            Char('G'),
+                            Char('D'),
+                            Char('Q'),
+                            Char('Z'),
+                            Char('M'),
+                            Char('<'),
+                            Char('>'),
+                            Char('?'),
+                        ],
+                        vec![
+                            Empty,
+                            Transparent,
+                            Empty,
+                            Empty,
+                            Char('E'),
+                            Empty,
+                        ],
+                    ]
+                    .into(),
+                ),
+            ]),
+            fingering: {
+                vec![
+                    vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                    vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                    vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                    vec![LT, LT, LT, RT, RT, RT]
+                ]
+                .into()
+            },
+            fingering_name: Some(NamedFingering::Traditional),
+            has_generated_shift: true,
+        };
+
+        assert_eq!(d, d_manual);
+
+        let reconvert_json =
+            serde_json::to_string_pretty(&d).expect("Couldn't reconvert to json value");
+
+        println!("{reconvert_json}")
+    }
+
+    #[test]
     fn maximal_succesful() {
         let maximal_json = include_str!("../example_dofs/minimal_valid.dof");
 
