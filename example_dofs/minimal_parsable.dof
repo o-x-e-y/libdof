@@ -1,6 +1,5 @@
 {
     "name": "Qwerty",
     "board": "ansi",
-    "layers": {},
-    "fingering": "angle"
+    "layers": {}
 }

@@ -1,10 +1,8 @@
 //! Contains some structs and functions that are used when interacting with the layout, like swapping two keys.
 
-use thiserror::Error;
-
 use crate::{
     dofinitions::{Finger, Key},
-    Dof,
+    Dof, DofErrorInner as DE, Result,
 };
 
 /// Represents a (row, column) position on a keyboard. Can be created by `(num, num).into()`.
@@ -50,19 +48,6 @@ impl From<(&str, (usize, usize))> for KeyPos {
     }
 }
 
-/// Error subtype of the [`interaction`](crate::interaction) module. Can be converted into `DofError` seamlessly
-/// using the `?` operator.
-#[allow(missing_docs)]
-#[derive(Debug, Error, Clone, PartialEq)]
-pub enum DofInteractionError {
-    #[error("the provided layer name '{0}' is invalid")]
-    LayerDoesntExist(String),
-    #[error("the given position ({0}, {1}) is not available on the keyboard")]
-    InvalidPosition(u8, u8),
-}
-
-use DofInteractionError as DIErr;
-
 impl Dof {
     /// Get every `KeyPos` that matches the given key. This can be multiple keys.
     pub fn get(&self, key: impl Into<Key>) -> Vec<KeyPos> {
@@ -95,11 +80,7 @@ impl Dof {
 
     /// Swaps two keys on a layout, provided the `KeyPos`es provided are valid. Useful for what it does,
     /// but using this where performance is even remotely important is _strongly discouraged_.
-    pub fn swap(
-        &mut self,
-        keypos1: impl Into<KeyPos>,
-        keypos2: impl Into<KeyPos>,
-    ) -> Result<(), DofInteractionError> {
+    pub fn swap(&mut self, keypos1: impl Into<KeyPos>, keypos2: impl Into<KeyPos>) -> Result<()> {
         let KeyPos {
             layer: layer_name1,
             pos: pos1,
@@ -118,21 +99,21 @@ impl Dof {
             let layer = self
                 .layers
                 .remove(&layer_name1)
-                .ok_or(DIErr::LayerDoesntExist(layer_name1.clone()))?;
+                .ok_or(DE::LayerDoesntExist(layer_name1.clone()))?;
 
             let char1 = layer
                 .0
                 .get(pos1.row)
-                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?
+                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?
                 .get(pos1.col)
-                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
+                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
 
             let char2 = layer
                 .0
                 .get(pos2.row)
-                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?
+                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?
                 .get(pos2.col)
-                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
+                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
 
             let char1 = char1 as *const _ as *mut Key;
             let char2 = char2 as *const _ as *mut Key;
@@ -146,26 +127,26 @@ impl Dof {
             let mut layer1 = self
                 .layers
                 .remove(&layer_name1)
-                .ok_or(DIErr::LayerDoesntExist(layer_name1.clone()))?;
+                .ok_or(DE::LayerDoesntExist(layer_name1.clone()))?;
 
             let mut layer2 = self
                 .layers
                 .remove(&layer_name2)
-                .ok_or(DIErr::LayerDoesntExist(layer_name2.clone()))?;
+                .ok_or(DE::LayerDoesntExist(layer_name2.clone()))?;
 
             let char1 = layer1
                 .0
                 .get_mut(pos1.row)
-                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?
+                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?
                 .get_mut(pos1.col)
-                .ok_or(DIErr::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
+                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
 
             let char2 = layer2
                 .0
                 .get_mut(pos2.row)
-                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?
+                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?
                 .get_mut(pos2.col)
-                .ok_or(DIErr::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
+                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
 
             std::mem::swap(char1, char2);
 

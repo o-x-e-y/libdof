@@ -3,13 +3,14 @@
 
 pub mod dofinitions;
 pub mod interaction;
+pub mod keyboard;
 mod macros;
 pub mod prelude;
 
 use interaction::{KeyPos, Pos};
-use prelude::DofInteractionError;
+use keyboard::{ParseKeyboard, PhysicalKeyboard};
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, serde_conv, skip_serializing_none, DisplayFromStr};
+use serde_with::{serde_as, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
 
 use std::collections::BTreeMap;
@@ -36,12 +37,13 @@ use dofinitions::*;
 /// ```
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
 pub struct Dof {
     name: String,
     authors: Option<Vec<String>>,
-    board: KeyboardType,
+    board: PhysicalKeyboard,
+    parsed_board: ParseKeyboard,
     year: Option<u32>,
     description: Option<String>,
     languages: Vec<Language>,
@@ -67,8 +69,17 @@ impl Dof {
     }
 
     /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout.
-    pub fn board(&self) -> &KeyboardType {
+    pub fn board(&self) -> &PhysicalKeyboard {
         &self.board
+    }
+
+    /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout. `Custom::("")`
+    /// if a custom physical keyboard was provided.
+    pub fn board_type(&self) -> KeyboardType {
+        match &self.parsed_board {
+            ParseKeyboard::Named(n) => n.clone(),
+            _ => KeyboardType::Custom("".into()),
+        }
     }
 
     /// Get the optional publication year of the layout.
@@ -166,14 +177,14 @@ impl Dof {
 impl TryFrom<DofIntermediate> for Dof {
     type Error = DofError;
 
-    fn try_from(mut inter: DofIntermediate) -> Result<Self, Self::Error> {
+    fn try_from(mut inter: DofIntermediate) -> std::result::Result<Self, Self::Error> {
         let main_layer = inter.main_layer()?;
 
         inter.validate_layer_keys(main_layer)?;
         inter.validate_layer_shapes(main_layer)?;
 
         let explicit_fingering = inter.explicit_fingering(main_layer)?;
-        let implicit_fingering = match inter.fingering.clone() {
+        let implicit_fingering = match inter.fingering.clone().unwrap_or_default() {
             ParsedFingering::Implicit(f) => Some(f),
             _ => None,
         };
@@ -193,6 +204,10 @@ impl TryFrom<DofIntermediate> for Dof {
             Some(a) => a,
         };
 
+        let board = PhysicalKeyboard::try_from(inter.board.clone())?
+            .resized(anchor, explicit_fingering.shape())?
+            .into();
+
         let languages = match inter.languages {
             Some(l) => l,
             None => vec![Language::default()],
@@ -201,7 +216,8 @@ impl TryFrom<DofIntermediate> for Dof {
         Ok(Self {
             name: inter.name,
             authors: inter.authors,
-            board: inter.board,
+            board,
+            parsed_board: inter.board,
             year: inter.year,
             description: inter.description,
             languages,
@@ -226,20 +242,29 @@ impl From<Dof> for DofIntermediate {
             .map(ParsedFingering::Implicit)
             .unwrap_or(ParsedFingering::Explicit(dof.fingering));
 
+        let fingering = if fingering == ParsedFingering::default() {
+            None
+        } else {
+            Some(fingering)
+        };
+
         let languages = match dof.languages.as_slice() {
             [lang] if lang == &Language::default() => None,
             _ => Some(dof.languages.clone()),
         };
 
-        let anchor = match dof.board.anchor() {
-            a if a == dof.anchor => None,
-            a => Some(a),
+        let anchor = match &dof.parsed_board {
+            ParseKeyboard::Named(n) => match n.anchor() {
+                a if a == dof.anchor => None,
+                a => Some(a),
+            },
+            _ => None,
         };
 
         DofIntermediate {
             name: dof.name,
             authors: dof.authors,
-            board: dof.board,
+            board: dof.parsed_board,
             year: dof.year,
             description: dof.description,
             languages,
@@ -253,12 +278,6 @@ impl From<Dof> for DofIntermediate {
 
 #[derive(Debug, Error, PartialEq)]
 enum DofErrorInner {
-    #[error("{0}")]
-    DofinitionError(#[from] dofinitions::DofinitionError),
-    #[error("{0}")]
-    InteractionError(#[from] interaction::DofInteractionError),
-    // #[error("The keyboard type '{0:?}' does not have an anchor at this time")]
-    // UnavailableKeyboardAnchor(KeyboardType),
     #[error("This layout is missing a main layer")]
     NoMainLayer,
     #[error("Found these layer keys '{0:?}' however these layers do not actually exist")]
@@ -267,20 +286,51 @@ enum DofErrorInner {
     IncompatibleLayerShapes(Vec<String>),
     #[error("The layer shapes do not match the fingering shape")]
     IncompatibleFingeringShape,
-    #[error("The provided layout + anchor doesn't fit in the given fingering")]
+    #[error("The provided layout + anchor don't fit within the given fingering")]
     LayoutDoesntFit,
     #[error("The anchor provided is bigger than the layout it is used for")]
     AnchorBiggerThanLayout,
+
+    #[error("Couldn't parse Finger from '{0}'")]
+    FingerParseError(String),
+    #[error("Can't combine keyboard type '{0}' with fingering '{1}'")]
+    UnsupportedKeyboardFingeringCombo(KeyboardType, NamedFingering),
+    #[error("Default fingering only exists for known keyboards: ansi, iso, ortho and colstag")]
+    FingeringForCustomKeyboard,
+
+    #[error("Couldn't parse physical key from '{0}' because a float couldn't be parsed")]
+    KeyParseError(String),
+    #[error("Missing opening parenthesis from '{0}'")]
+    MissingOpeningParenthesis(String),
+    #[error("Missing closing parenthesis from '{0}'")]
+    MissingClosingParenthesis(String),
+    #[error("Expected 2, 3 or 4 values in physical key definition, found {0} for '{1}'")]
+    ValueAmountError(usize, String),
+    #[error("Keyboard type '{0}' does not match a default physical keyboard.")]
+    UnknownKeyboardType(KeyboardType),
+
+    #[error("the provided layer name '{0}' is invalid")]
+    LayerDoesntExist(String),
+    #[error("the given position ({0}, {1}) is not available on the keyboard")]
+    InvalidPosition(u8, u8),
+
+    #[error("{0}")]
+    Infallible(#[from] std::convert::Infallible),
+    #[error("{0}")]
+    ParseFloatError(#[from] std::num::ParseFloatError),
+    #[error("{0}")]
+    ParseIntError(#[from] std::num::ParseIntError),
+
     #[error("{0}")]
     Custom(String),
 }
 
 use DofErrorInner as DErr;
 
+type Result<T> = std::result::Result<T, DofError>;
+
 /// The main error struct of the library. Internally it uses a Box containing [`DofErrorInner`](crate::DofErrorInner)
-/// to save space. The other error types of this crate, being [`DofinitonError`](crate::dofinitions::DofinitionError)
-/// and [`DofInteractionError`](crate::interaction::DofInteractionError), can be seamlessly converted into `DofError`
-/// with the `?` operator.
+/// to save space.
 #[derive(Debug, Error, PartialEq)]
 #[error("{0}")]
 pub struct DofError(#[source] Box<DofErrorInner>);
@@ -295,18 +345,6 @@ impl DofError {
 impl From<DofErrorInner> for DofError {
     fn from(value: DofErrorInner) -> Self {
         Self(Box::new(value))
-    }
-}
-
-impl From<DofinitionError> for DofError {
-    fn from(value: DofinitionError) -> Self {
-        Self(Box::new(DErr::DofinitionError(value)))
-    }
-}
-
-impl From<DofInteractionError> for DofError {
-    fn from(value: DofInteractionError) -> Self {
-        Self(Box::new(DErr::InteractionError(value)))
     }
 }
 
@@ -347,22 +385,36 @@ impl Language {
     }
 }
 
-/// Struct that represents the fingering of each layout. It is an abstraction over `Vec<Vec<Finger>>`.
-#[serde_as]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Fingering(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>);
+/// Overarching trait for any type that contains a `Vec<Vec<K>>` represinting one aspect of
+/// a keyboard(layout). In libdof these are `Layer` and `Fingering`, but this could also be
+/// implemented for a heatmap type or a physical keyboard for example.
+pub trait Keyboard {
+    /// A type representing a key.
+    type K: Clone;
 
-impl_keyboard!(Fingering, Finger, FingeringStrAsRow);
-
-impl Fingering {
-    /// Given a specific fingering, an [`Anchor`](crate::Anchor) and the [`Shape`](crate::Shape) you
-    /// would like to get (that has to be smaller than the fingering itself), resize the fingering to
-    /// the shape provided.
-    pub fn resized_fingering(
-        &self,
-        Anchor(x, y): Anchor,
-        desired_shape: Shape,
-    ) -> Result<Fingering, DofError> {
+    /// Get an iterator over each row of the keyboard.
+    fn rows(&self) -> impl Iterator<Item = &Vec<Self::K>> {
+        self.inner().iter()
+    }
+    /// Get an iterator over the individual keys of the keyboard.
+    fn keys(&self) -> impl Iterator<Item = &Self::K> {
+        self.rows().flatten()
+    }
+    /// Get the shape of the keyboard.
+    fn shape(&self) -> Shape {
+        self.rows().map(|r| r.len()).collect::<Vec<_>>().into()
+    }
+    /// Get the amount of rows of the keyboard.
+    fn row_count(&self) -> usize {
+        self.rows().count()
+    }
+    /// Get a reference to the inner rows of the keyboard.
+    fn inner(&self) -> &[Vec<Self::K>];
+    /// Convert into underlying vectors of the keyboard.
+    fn into_inner(self) -> Vec<Vec<Self::K>>;
+    /// Given a specific keyboard, an [`Anchor`](crate::Anchor) and the [`Shape`](crate::Shape),
+    /// resize to the given shape. Returns an error if the shape is bigger than the provided keyboard.
+    fn resized(&self, Anchor(x, y): Anchor, desired_shape: Shape) -> Result<Vec<Vec<Self::K>>> {
         let (offset_x, offset_y) = (x as usize, y as usize);
 
         let anchor_resized = self
@@ -370,8 +422,8 @@ impl Fingering {
             .get(offset_y..)
             .ok_or(DErr::AnchorBiggerThanLayout)?
             .iter()
-            .map(|r| r.get(offset_x..).ok_or(DErr::AnchorBiggerThanLayout))
-            .collect::<Result<Vec<_>, _>>()?;
+            .map(|r| r.get(offset_x..).ok_or(DErr::AnchorBiggerThanLayout.into()))
+            .collect::<Result<Vec<_>>>()?;
 
         anchor_resized
             .into_iter()
@@ -381,10 +433,35 @@ impl Fingering {
                     .ok_or(DErr::LayoutDoesntFit.into())
                     .map(|v| v.to_vec())
             })
-            .collect::<Result<Vec<_>, _>>()
+            .collect::<Result<Vec<_>>>()
             .map(Into::into)
     }
 }
+
+/// Struct that represents the fingering of each layout. It is an abstraction over `Vec<Vec<Finger>>`.
+#[serde_as]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Fingering(#[serde_as(as = "Vec<FingeringStrAsRow>")] Vec<Vec<Finger>>);
+
+impl Keyboard for Fingering {
+    type K = Finger;
+
+    fn inner(&self) -> &[Vec<Self::K>] {
+        &self.0
+    }
+
+    fn into_inner(self) -> Vec<Vec<Self::K>> {
+        self.0
+    }
+}
+
+impl From<Vec<Vec<Finger>>> for Fingering {
+    fn from(f: Vec<Vec<Finger>>) -> Self {
+        Self(f)
+    }
+}
+
+keyboard_conv!(Fingering, Finger, FingeringStrAsRow);
 
 /// Abstraction over the way an actual .dof file is allowed to represent the fingering of a layout, being either
 /// explicit through providing a list of fingerings for each key, or implicit, by providing a name.
@@ -399,12 +476,36 @@ pub enum ParsedFingering {
     Implicit(#[serde_as(as = "DisplayFromStr")] NamedFingering),
 }
 
+impl Default for ParsedFingering {
+    fn default() -> Self {
+        Self::Implicit(Default::default())
+    }
+}
+
 /// An abstraction of `Vec<Vec<Key>>` to represent a layer on a layout.
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Layer(#[serde_as(as = "Vec<LayerStrAsRow>")] Vec<Vec<Key>>);
 
-impl_keyboard!(Layer, Key, LayerStrAsRow);
+impl Keyboard for Layer {
+    type K = Key;
+
+    fn inner(&self) -> &[Vec<Self::K>] {
+        &self.0
+    }
+
+    fn into_inner(self) -> Vec<Vec<Self::K>> {
+        self.0
+    }
+}
+
+impl From<Vec<Vec<Key>>> for Layer {
+    fn from(f: Vec<Vec<Key>>) -> Self {
+        Self(f)
+    }
+}
+
+keyboard_conv!(Layer, Key, LayerStrAsRow);
 
 /// An anchor represents where the top left key on a `Dof` is compared to where it would be on a physical
 /// keyboard. For example, if you were to provide a 3x10 raster of letters but would like this applied to an
@@ -563,12 +664,13 @@ impl DescriptiveKey {
 #[allow(missing_docs)]
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DofIntermediate {
     pub name: String,
     pub authors: Option<Vec<String>>,
-    #[serde_as(as = "DisplayFromStr")]
-    pub board: KeyboardType,
+    // #[serde_as(as = "DisplayFromStr")]
+    // pub board: KeyboardType,
+    pub board: ParseKeyboard,
     pub year: Option<u32>,
     pub description: Option<String>,
     pub languages: Option<Vec<Language>>,
@@ -577,12 +679,12 @@ pub struct DofIntermediate {
     pub anchor: Option<Anchor>,
     // pub alt_fingerings: Option<Vec<String>>,
     // pub combos: Option<HashMap<String, String>>,
-    pub fingering: ParsedFingering,
+    pub fingering: Option<ParsedFingering>,
 }
 
 impl DofIntermediate {
     /// Get the main layer if it exists. If it doesn't return a `NoMainLayer` error.
-    pub fn main_layer(&self) -> Result<&Layer, DofError> {
+    pub fn main_layer(&self) -> Result<&Layer> {
         self.layers.get("main").ok_or(DErr::NoMainLayer.into())
     }
 
@@ -605,7 +707,7 @@ impl DofIntermediate {
 
     /// Validation check to see if the layers the [`Key::Layer`](crate::dofinitions::Key::Layer)
     /// keys point to actually exist.
-    pub fn validate_layer_keys(&self, main: &Layer) -> Result<(), DofError> {
+    pub fn validate_layer_keys(&self, main: &Layer) -> Result<()> {
         let layers_dont_exist = main
             .keys()
             .filter_map(|k| match k {
@@ -622,7 +724,7 @@ impl DofIntermediate {
     }
 
     /// Validation check to see if all layers are the same shape as the main layer.
-    pub fn validate_layer_shapes(&self, main: &Layer) -> Result<(), DofError> {
+    pub fn validate_layer_shapes(&self, main: &Layer) -> Result<()> {
         let main_shape = main.shape();
 
         let incompatible_shapes = self
@@ -643,10 +745,16 @@ impl DofIntermediate {
     /// Validation check to see if the provided fingering has the same shape as the main layer.
     /// If left implicit (by leaving just a name of a fingering, like `traditional` /// or `angle`)
     /// will try to generate a fingering with the same shape as the main layer.
-    pub fn explicit_fingering(&self, main: &Layer) -> Result<Fingering, DofError> {
+    pub fn explicit_fingering(&self, main: &Layer) -> Result<Fingering> {
         use ParsedFingering::*;
 
-        match &self.fingering {
+        let d = Default::default();
+        let fingering = match &self.fingering {
+            Some(f) => f,
+            None => &d,
+        };
+
+        match fingering {
             Explicit(f) if f.shape() == main.shape() => Ok(f.clone()),
             Explicit(_) => Err(DErr::IncompatibleFingeringShape.into()),
             Implicit(named) => {
@@ -657,7 +765,7 @@ impl DofIntermediate {
                     None => self.board.anchor(),
                 };
 
-                fingering.resized_fingering(anchor, main.shape())
+                fingering.resized(anchor, main.shape()).map(Into::into)
             }
         }
     }
@@ -672,14 +780,14 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: KeyboardType::Ansi,
+            board: ParseKeyboard::Named(KeyboardType::Ansi),
             year: None,
             description: None,
             languages: Default::default(),
             link: None,
             anchor: None,
             layers: BTreeMap::new(),
-            fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
+            fingering: Some(ParsedFingering::Implicit(NamedFingering::Angle)),
         };
 
         let v = Dof::try_from(minimal_test);
@@ -694,14 +802,14 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: KeyboardType::Ansi,
+            board: ParseKeyboard::Named(KeyboardType::Ansi),
             year: None,
             description: None,
             languages: None,
             link: None,
             anchor: None,
             layers: BTreeMap::new(),
-            fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
+            fingering: None,
         };
 
         let dof_minimal = serde_json::from_str::<DofIntermediate>(minimal_json)
@@ -722,7 +830,12 @@ mod tests {
         let d_manual = Dof {
             name: "Qwerty".into(),
             authors: None,
-            board: KeyboardType::Ansi,
+            board: PhysicalKeyboard::try_from(ParseKeyboard::Named(KeyboardType::Ansi))
+                .unwrap()
+                .resized(KeyboardType::Ansi.anchor(), vec![10, 11, 10].into())
+                .unwrap()
+                .into(),
+            parsed_board: ParseKeyboard::Named(KeyboardType::Ansi),
             year: None,
             description: None,
             languages: vec![Default::default()],
@@ -847,14 +960,14 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: KeyboardType::Ansi,
+            board: ParseKeyboard::Named(KeyboardType::Ansi),
             year: None,
             description: None,
             languages: None,
             link: None,
             anchor: None,
             layers: BTreeMap::new(),
-            fingering: { ParsedFingering::Implicit(NamedFingering::Angle) },
+            fingering: Some(ParsedFingering::Implicit(NamedFingering::Angle)),
         };
 
         let s = serde_json::to_string_pretty(&minimal_test).unwrap();
@@ -883,7 +996,7 @@ mod tests {
         let maximal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: Some(vec!["Christopher Latham Sholes".into()]),
-            board: KeyboardType::Ansi,
+            board: ParseKeyboard::Named(KeyboardType::Ansi),
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
             languages: None,
@@ -1122,13 +1235,13 @@ mod tests {
                 ),
             ]),
             fingering: {
-                ParsedFingering::Explicit(Fingering::from(vec![
+                Some(ParsedFingering::Explicit(Fingering::from(vec![
                     vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                     vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                     vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
                     vec![LP, LR, LM, LI, LI, LI, RI, RI, RM, RR, RP, RP],
                     vec![LP, LP, LT, LT, LT, RT, RT, RP],
-                ]))
+                ])))
             },
         };
 

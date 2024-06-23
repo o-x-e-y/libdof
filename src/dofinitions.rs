@@ -1,31 +1,8 @@
 //!Contains most types to represent elements of a keyboard layout with
 
-use thiserror::Error;
-
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use crate::{Anchor, Fingering};
-
-/// Error subtype for the [`dofinitions`](crate::dofinitions) module. Can be seamlessly converted into `DofError`
-/// using the `?` operator.
-#[allow(missing_docs)]
-#[derive(Debug, Error, PartialEq)]
-pub enum DofinitionError {
-    #[error("Couldn't parse Finger from '{0}'")]
-    FingerParseError(String),
-    #[error("an empty string can't be parsed into a Key")]
-    EmptyKeyError,
-    #[error("{0}")]
-    Infallible(#[from] std::convert::Infallible),
-    #[error("Can't combine keyboard type '{0}' with fingering '{1}'")]
-    UnsupportedKeyboardFingeringCombo(KeyboardType, NamedFingering),
-    #[error("The shape of '{0}' does not overlap with the provided keymap")]
-    NonOverlappingShapesError(NamedFingering),
-    #[error("The given fingering is unknown. Valid inputs are: angle, traditional")]
-    UnknownNamedFingering,
-    #[error("{0}")]
-    ParseIntError(#[from] std::num::ParseIntError)
-}
+use crate::{Anchor, DofError, DofErrorInner, Fingering, Keyboard, Result};
 
 /// Represents a finger. Implements `ToString` and `FromStr`, where each finger can either be represented
 /// in string form as `LP`, `LR` (left pinky, left ring) or as a number where `LP`= 0, `LR`= 1 up to
@@ -57,16 +34,16 @@ pub enum Finger {
 impl Finger {
     /// Array containing all 10 fingers in order from `LP` to `RP`.
     pub const FINGERS: [Self; 10] = [
-        Self::LP, 
-        Self::LR, 
-        Self::LM, 
-        Self::LI, 
-        Self::LT, 
-        Self::RT, 
-        Self::RI, 
-        Self::RM, 
-        Self::RR, 
-        Self::RP
+        Self::LP,
+        Self::LR,
+        Self::LM,
+        Self::LI,
+        Self::LT,
+        Self::RT,
+        Self::RI,
+        Self::RM,
+        Self::RR,
+        Self::RP,
     ];
 }
 
@@ -77,9 +54,9 @@ impl Display for Finger {
 }
 
 impl FromStr for Finger {
-    type Err = DofinitionError;
+    type Err = DofError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         use Finger::*;
 
         let s = s.trim_start().trim_end();
@@ -94,7 +71,7 @@ impl FromStr for Finger {
             "RM" | "7" => Ok(RM),
             "RR" | "8" => Ok(RR),
             "RP" | "9" => Ok(RP),
-            _ => Err(DofinitionError::FingerParseError(s.to_string())),
+            _ => Err(DofErrorInner::FingerParseError(s.to_string()).into()),
         }
     }
 }
@@ -102,9 +79,10 @@ impl FromStr for Finger {
 /// Represents known fingerings with names. Currently these are `Traditional` and `Angle`. A `Custom` type
 /// is also specified, though this isn't particularly useful in use with the rest of the library. `FromStr`
 /// uses `standard` and `traditional` for `Traditional`, and `angle` for `Angle`.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum NamedFingering {
-    /// Traditional fingering
+    /// Traditional fingering. Default value.
+    #[default]
     Traditional,
     /// Fingering for angle mod
     Angle,
@@ -127,7 +105,7 @@ impl Display for NamedFingering {
 impl FromStr for NamedFingering {
     type Err = std::convert::Infallible;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let res = match s.to_lowercase().as_str() {
             "standard" | "traditional" => Self::Traditional,
             "angle" => Self::Angle,
@@ -185,7 +163,9 @@ pub enum Key {
     Char(char),
     Word(String),
     Special(SpecialKey),
-    Layer { name: String },
+    Layer {
+        name: String,
+    },
 }
 
 impl Key {
@@ -324,7 +304,7 @@ impl Display for Key {
 impl FromStr for Key {
     type Err = Infallible;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         Ok(s.into())
     }
 }
@@ -443,10 +423,7 @@ impl KeyboardType {
     /// Given a known fingering from `NamedFingering`, provide a `Fingering` object with all keys on a board
     /// like that specified. Will Return an error if any combination is provided that isn't valid, like
     /// `KeyboardType::Ortho` and `NamedFingering::Angle`.
-    pub fn fingering(
-        &self,
-        named_fingering: &NamedFingering,
-    ) -> Result<Fingering, DofinitionError> {
+    pub fn fingering(&self, named_fingering: &NamedFingering) -> Result<Fingering> {
         use Finger::*;
         use KeyboardType::*;
         use NamedFingering::*;
@@ -485,24 +462,25 @@ impl KeyboardType {
             ]
             .into(),
             (Ortho, Traditional) => vec![
-                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
                 vec![LT, LT, LT, RT, RT, RT],
             ]
             .into(),
             (Colstag, Traditional) => vec![
-                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
+                vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
+                vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
                 vec![LT, LT, LT, RT, RT, RT],
             ]
             .into(),
             (board, &f) => {
-                return Err(DofinitionError::UnsupportedKeyboardFingeringCombo(
+                return Err(DofErrorInner::UnsupportedKeyboardFingeringCombo(
                     board.clone(),
                     f.clone(),
-                ))
+                )
+                .into())
             }
         };
 
@@ -521,8 +499,8 @@ impl KeyboardType {
         match self {
             KeyboardType::Ansi => Anchor::new(1, 1),
             KeyboardType::Iso => Anchor::new(1, 1),
-            KeyboardType::Ortho => Anchor::new(1, 0),
-            KeyboardType::Colstag => Anchor::new(1, 0),
+            KeyboardType::Ortho => Anchor::new(0, 0),
+            KeyboardType::Colstag => Anchor::new(0, 0),
             KeyboardType::Custom(_) => Anchor::new(0, 0),
         }
     }
@@ -547,7 +525,7 @@ impl Display for KeyboardType {
 impl FromStr for KeyboardType {
     type Err = std::convert::Infallible;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         use KeyboardType::*;
 
         match s.to_lowercase().as_str() {
