@@ -61,16 +61,16 @@ impl FromStr for Finger {
 
         let s = s.trim_start().trim_end();
         match s {
-            "LP" | "0" => Ok(LP),
-            "LR" | "1" => Ok(LR),
-            "LM" | "2" => Ok(LM),
-            "LI" | "3" => Ok(LI),
-            "LT" | "4" => Ok(LT),
-            "RT" | "5" => Ok(RT),
-            "RI" | "6" => Ok(RI),
-            "RM" | "7" => Ok(RM),
-            "RR" | "8" => Ok(RR),
-            "RP" | "9" => Ok(RP),
+            "lp" | "LP" | "0" => Ok(LP),
+            "lr" | "LR" | "1" => Ok(LR),
+            "lm" | "LM" | "2" => Ok(LM),
+            "li" | "LI" | "3" => Ok(LI),
+            "lt" | "LT" | "4" => Ok(LT),
+            "rt" | "RT" | "5" => Ok(RT),
+            "ri" | "RI" | "6" => Ok(RI),
+            "rm" | "RM" | "7" => Ok(RM),
+            "rr" | "RR" | "8" => Ok(RR),
+            "rp" | "RP" | "9" => Ok(RP),
             _ => Err(DofErrorInner::FingerParseError(s.to_string()).into()),
         }
     }
