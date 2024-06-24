@@ -389,7 +389,7 @@ impl TryFrom<ParseKeyboard> for PhysicalKeyboard {
     }
 }
 
-fn xy(x: f64, y: f64) -> PhysicalKey {
+pub(crate) fn xy(x: f64, y: f64) -> PhysicalKey {
     PhysicalKey {
         x,
         y,
@@ -398,7 +398,7 @@ fn xy(x: f64, y: f64) -> PhysicalKey {
     }
 }
 
-fn xyw(x: f64, y: f64, width: f64) -> PhysicalKey {
+pub(crate) fn xyw(x: f64, y: f64, width: f64) -> PhysicalKey {
     PhysicalKey {
         x,
         y,
@@ -407,7 +407,7 @@ fn xyw(x: f64, y: f64, width: f64) -> PhysicalKey {
     }
 }
 
-fn xywh(x: f64, y: f64, width: f64, height: f64) -> PhysicalKey {
+pub(crate) fn xywh(x: f64, y: f64, width: f64, height: f64) -> PhysicalKey {
     PhysicalKey {
         x,
         y,
@@ -416,7 +416,7 @@ fn xywh(x: f64, y: f64, width: f64, height: f64) -> PhysicalKey {
     }
 }
 
-fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) -> Vec<PhysicalKey> {
+pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) -> Vec<PhysicalKey> {
     let mut x = x_offset;
 
     widths

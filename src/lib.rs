@@ -771,6 +771,8 @@ impl DofIntermediate {
 
 #[cfg(test)]
 mod tests {
+    use keyboard::{RelativeKeyboard, RelativeKey};
+
     use super::*;
 
     #[test]
@@ -1059,14 +1061,7 @@ mod tests {
                             Char('>'),
                             Char('?'),
                         ],
-                        vec![
-                            Empty,
-                            Transparent,
-                            Empty,
-                            Empty,
-                            Char('E'),
-                            Empty,
-                        ],
+                        vec![Empty, Transparent, Empty, Empty, Char('E'), Empty],
                     ]
                     .into(),
                 ),
@@ -1076,7 +1071,7 @@ mod tests {
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
-                    vec![LT, LT, LT, RT, RT, RT]
+                    vec![LT, LT, LT, RT, RT, RT],
                 ]
                 .into()
             },
@@ -1129,6 +1124,10 @@ mod tests {
         assert_eq!(buggy.anchor, Anchor(0, 0));
     }
 
+    fn rk(width: f64) -> RelativeKey {
+        RelativeKey { width, has_key: true }
+    }
+
     #[test]
     fn parse_maximal() {
         use Finger::*;
@@ -1140,7 +1139,6 @@ mod tests {
         let maximal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: Some(vec!["Christopher Latham Sholes".into()]),
-            board: ParseKeyboard::Named(KeyboardType::Ansi),
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
             languages: None,
@@ -1387,6 +1385,79 @@ mod tests {
                     vec![LP, LP, LT, LT, LT, RT, RT, RP],
                 ])))
             },
+            board: ParseKeyboard::Relative(RelativeKeyboard::from(vec![
+                vec![
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(2.0),
+                ],
+                vec![
+                    rk(1.5),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.5),
+                ],
+                vec![
+                    rk(1.75),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(2.25),
+                ],
+                vec![
+                    rk(2.25),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(1.0),
+                    rk(2.75),
+                ],
+                vec![
+                    rk(1.25),
+                    rk(1.25),
+                    rk(1.25),
+                    rk(6.25),
+                    rk(1.25),
+                    rk(1.25),
+                    rk(1.25),
+                    rk(1.25),
+                ],
+            ]))
         };
 
         let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)
