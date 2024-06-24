@@ -300,10 +300,8 @@ enum DofErrorInner {
 
     #[error("Couldn't parse physical key from '{0}' because a float couldn't be parsed")]
     KeyParseError(String),
-    #[error("Missing opening parenthesis from '{0}'")]
-    MissingOpeningParenthesis(String),
-    #[error("Missing closing parenthesis from '{0}'")]
-    MissingClosingParenthesis(String),
+    #[error("Couldn't parse physical key because the string is empty")]
+    EmptyPhysKey,
     #[error("Expected 2, 3 or 4 values in physical key definition, found {0} for '{1}'")]
     ValueAmountError(usize, String),
     #[error("Keyboard type '{0}' does not match a default physical keyboard.")]

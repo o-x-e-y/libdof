@@ -23,9 +23,12 @@ pub struct PhysicalKey {
 
 impl std::fmt::Display for PhysicalKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.width {
-            w if w >= 0.999999 || w <= 1.000001 => write!(f, "({} {})", self.x, self.y),
-            w => write!(f, "({} {} {})", self.x, self.y, w),
+        let omit = |v: f64| v >= 0.999999 || v <= 1.000001;
+
+        match (omit(self.width), omit(self.height)) {
+            (true, true) => write!(f, "{} {}", self.x, self.y),
+            (false, true) => write!(f, "{} {} {}", self.x, self.y, self.width),
+            (_, false) => write!(f, "{} {} {} {}", self.x, self.y, self.width, self.height),
         }
     }
 }
@@ -34,23 +37,23 @@ impl FromStr for PhysicalKey {
     type Err = DofError;
 
     fn from_str(s: &str) -> Result<Self> {
-        let stripped = s
-            .strip_prefix('(')
-            .ok_or(DE::MissingOpeningParenthesis(s.into()))?
-            .strip_suffix(')')
-            .ok_or(DE::MissingClosingParenthesis(s.into()))?;
+        let trimmed = s.trim();
 
-        let vals = stripped
+        if trimmed.is_empty() {
+            return Err(DE::EmptyPhysKey.into());
+        }
+
+        let vals = trimmed
             .split_whitespace()
             .map(|s| s.parse::<f64>())
             .collect::<std::result::Result<Vec<_>, _>>()
-            .map_err(|_| DE::KeyParseError(s.into()))?;
+            .map_err(|_| DE::KeyParseError(trimmed.into()))?;
 
         match vals.as_slice() {
             &[x, y] => Ok(xy(x, y)),
             &[x, y, width] => Ok(xyw(x, y, width)),
             &[x, y, width, height] => Ok(xywh(x, y, width, height)),
-            sl => Err(DE::ValueAmountError(sl.len(), stripped.into()).into()),
+            sl => Err(DE::ValueAmountError(sl.len(), trimmed.into()).into()),
         }
     }
 }
@@ -463,11 +466,11 @@ mod tests {
 
     #[test]
     fn parse_physical_key() {
-        let k1 = "(0.0 0.0)".parse::<PhysicalKey>();
-        let k2 = "(1 2 3)".parse::<PhysicalKey>();
-        let k3 = "(0 0 4 2)".parse::<PhysicalKey>();
-        let k4 = "(0.1)".parse::<PhysicalKey>();
-        let k5 = "(0.1 0.2".parse::<PhysicalKey>();
+        let k1 = "0.0 0.0".parse::<PhysicalKey>();
+        let k2 = "1 2 3".parse::<PhysicalKey>();
+        let k3 = "0 0 4 2".parse::<PhysicalKey>();
+        let k4 = "0.1".parse::<PhysicalKey>();
+        let k5 = "0.1 0.2".parse::<PhysicalKey>();
         let k6 = "".parse::<PhysicalKey>();
 
         assert_eq!(k1, Ok(xy(0.0, 0.0)));
@@ -477,23 +480,15 @@ mod tests {
             k4,
             Err(DofError::from(DE::ValueAmountError(1, "0.1".into())))
         );
-        assert_eq!(
-            k5,
-            Err(DofError::from(DE::MissingClosingParenthesis(
-                "(0.1 0.2".into()
-            )))
-        );
-        assert_eq!(
-            k6,
-            Err(DofError::from(DE::MissingOpeningParenthesis("".into())))
-        );
+        assert_eq!(k5, Ok(xy(0.1, 0.2)));
+        assert_eq!(k6, Err(DofError::from(DE::EmptyPhysKey)));
     }
 
     #[test]
     fn parse_physical_key_board() {
         let board_str = r#"[
                 [
-                    "(1.8125 0.5 2 3)"
+                    "1.8125 0.5 2 3"
                 ]
             ]
         "#;
