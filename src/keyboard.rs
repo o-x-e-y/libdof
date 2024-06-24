@@ -549,7 +549,7 @@ mod tests {
     fn row_defined_keyboard() {
         let board_str = r#"
             [
-                "k 3.2k 2"
+                "k 3.2k   2 8k"
             ]
         "#;
 
@@ -568,6 +568,10 @@ mod tests {
             RelativeKey {
                 width: 2.0,
                 has_key: false,
+            },
+            RelativeKey {
+                width: 8.0,
+                has_key: true,
             },
         ]]));
 
