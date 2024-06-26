@@ -69,7 +69,7 @@ impl Dof {
     }
 
     /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout.
-    pub fn board(&self) -> &PhysicalKeyboard {
+    pub const fn board(&self) -> &PhysicalKeyboard {
         &self.board
     }
 
@@ -83,7 +83,7 @@ impl Dof {
     }
 
     /// Get the optional publication year of the layout.
-    pub fn year(&self) -> Option<u32> {
+    pub const fn year(&self) -> Option<u32> {
         self.year
     }
 
@@ -109,7 +109,7 @@ impl Dof {
 
     /// Get the layout anchor, which specifies the coordinate of the top left corner of the layout compared to
     /// the physical keyboard it's on.
-    pub fn anchor(&self) -> Anchor {
+    pub const fn anchor(&self) -> Anchor {
         self.anchor
     }
 
@@ -120,7 +120,7 @@ impl Dof {
 
     /// Get the fingering of the keyboard, which specifies for each coordinate which finger is supposed to press
     /// what key.
-    pub fn fingering(&self) -> &Fingering {
+    pub const fn fingering(&self) -> &Fingering {
         &self.fingering
     }
 
@@ -129,16 +129,16 @@ impl Dof {
         self.fingering_name.as_ref()
     }
 
-    /// Get the main layer of the layout. Since creating a `Dof` without a main layer is impossible,
-    // it should never fail.
+    /// Get the main layer of the layout. Contains a call to `expect()` but since creating a
+    /// `Dof` without a main layer is impossible, it should never fail.
     pub fn main_layer(&self) -> &Layer {
         self.layers
             .get("main")
             .expect("Creating a Dof without a main layer should be impossible")
     }
 
-    /// Get the shift layer of the layout. Since creating a `Dof` without a shift layer is impossible,
-    /// this should never fail
+    /// Get the shift layer of the layout. Contains a call to `expect()` but since creating a
+    /// `Dof` without a main layer is impossible, it should never fail.
     pub fn shift_layer(&self) -> &Layer {
         self.layers
             .get("shift")
@@ -529,17 +529,17 @@ pub struct Anchor(u8, u8);
 
 impl Anchor {
     /// Create a new anchor
-    pub fn new(x: u8, y: u8) -> Self {
+    pub const fn new(x: u8, y: u8) -> Self {
         Anchor(x, y)
     }
 
     /// Return the x coordinate as usize
-    pub fn x(&self) -> usize {
+    pub const fn x(&self) -> usize {
         self.0 as usize
     }
 
     /// Return the y coordinate as usize
-    pub fn y(&self) -> usize {
+    pub const fn y(&self) -> usize {
         self.1 as usize
     }
 }
@@ -581,22 +581,22 @@ impl<'a> DescriptiveKey<'a> {
     }
 
     /// Get the key's row and column.
-    pub fn pos(&self) -> Pos {
+    pub const fn pos(&self) -> Pos {
         self.pos
     }
 
     /// Get the key's row.
-    pub fn row(&self) -> usize {
+    pub const fn row(&self) -> usize {
         self.pos.row()
     }
 
     /// Get the key's column.
-    pub fn col(&self) -> usize {
+    pub const fn col(&self) -> usize {
         self.pos.col()
     }
 
     /// Get the finger the key is supposed to be pressed with.
-    pub fn finger(&self) -> Finger {
+    pub const fn finger(&self) -> Finger {
         self.finger
     }
 
@@ -616,8 +616,8 @@ impl<'a> DescriptiveKey<'a> {
     }
 
     /// Check if the key is on a certain finger.
-    pub fn is_on_finger(&self, finger: Finger) -> bool {
-        self.finger == finger
+    pub const fn is_on_finger(&self, finger: Finger) -> bool {
+        (self.finger as u8) == (finger as u8)
     }
 
     /// Check if the key is on any of the provided fingers.
@@ -642,36 +642,36 @@ impl<'a> DescriptiveKey<'a> {
 
     /// Check if the key is of type [`Key::Char`](crate::dofinitions::Key::Char) which outputs
     /// a single character.
-    pub fn is_char_key(&self) -> bool {
+    pub const fn is_char_key(&self) -> bool {
         self.output.is_char()
     }
 
     /// Check if the key is of type [`Key::Word`](crate::dofinitions::Key::Word) which outputs a specific
     /// string.
-    pub fn is_word_key(&self) -> bool {
+    pub const fn is_word_key(&self) -> bool {
         self.output.is_word()
     }
 
     /// Check if the key is of type [`Key::Empty`](crate::dofinitions::Key::Empty) which doesn't output
     /// anything.
-    pub fn is_empty_key(&self) -> bool {
+    pub const fn is_empty_key(&self) -> bool {
         self.output.is_empty()
     }
 
     /// Check if the key is of type [`Key::Transparent`](crate::dofinitions::Key::Char) which outputs
     /// whatever it is the main layer outputs in that position.
-    pub fn is_transparent_key(&self) -> bool {
+    pub const fn is_transparent_key(&self) -> bool {
         self.output.is_transparent()
     }
 
     /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer) which holds the name.
     /// of a layer on the layout
-    pub fn is_layer_key(&self) -> bool {
+    pub const fn is_layer_key(&self) -> bool {
         self.output.is_layer()
     }
 
     /// Get the output if the key is of type [`Key::Char`](crate::dofinitions::Key::Char).
-    pub fn char_output(&self) -> Option<char> {
+    pub const fn char_output(&self) -> Option<char> {
         self.output.char_output()
     }
 
@@ -734,7 +734,7 @@ impl DofIntermediate {
     }
 
     /// Validation check to see if the layers the [`Key::Layer`](crate::dofinitions::Key::Layer)
-    /// keys point to actually exist.
+    /// keys point to layers that actually exist.
     pub fn validate_layer_keys(&self, main: &Layer) -> Result<()> {
         let layers_dont_exist = main
             .keys()
@@ -771,7 +771,7 @@ impl DofIntermediate {
     }
 
     /// Validation check to see if the provided fingering has the same shape as the main layer.
-    /// If left implicit (by leaving just a name of a fingering, like `traditional` /// or `angle`)
+    /// If left implicit (by leaving just a name of a fingering, like `traditional` or `angle`)
     /// will try to generate a fingering with the same shape as the main layer.
     pub fn explicit_fingering(&self, main: &Layer) -> Result<Fingering> {
         use ParsedFingering::*;
@@ -801,7 +801,7 @@ impl DofIntermediate {
 
 #[cfg(test)]
 mod tests {
-    use keyboard::{RelativeKeyboard, RelativeKey};
+    use keyboard::{RelativeKey, RelativeKeyboard};
 
     use super::*;
 
@@ -1155,7 +1155,10 @@ mod tests {
     }
 
     fn rk(width: f64) -> RelativeKey {
-        RelativeKey { width, has_key: true }
+        RelativeKey {
+            width,
+            has_key: true,
+        }
     }
 
     #[test]
@@ -1487,7 +1490,7 @@ mod tests {
                     rk(1.25),
                     rk(1.25),
                 ],
-            ]))
+            ])),
         };
 
         let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)

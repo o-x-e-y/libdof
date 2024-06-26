@@ -266,36 +266,36 @@ impl Key {
 
     /// Check if the key is of type [`Key::Char`](crate::dofinitions::Key::Char) which outputs
     /// a single character.
-    pub fn is_char(&self) -> bool {
+    pub const fn is_char(&self) -> bool {
         matches!(self, Key::Char(_))
     }
 
     /// Check if the key is of type [`Key::Word`](crate::dofinitions::Key::Word) which outputs a specific
     /// string.
-    pub fn is_word(&self) -> bool {
+    pub const fn is_word(&self) -> bool {
         matches!(self, Key::Word(_))
     }
 
     /// Check if the key is of type [`Key::Empty`](crate::dofinitions::Key::Empty) which doesn't output
     /// anything.
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         matches!(self, Key::Empty)
     }
 
     /// Check if the key is of type [`Key::Transparent`](crate::dofinitions::Key::Char) which outputs
     /// whatever it is the main layer outputs in that position.
-    pub fn is_transparent(&self) -> bool {
+    pub const fn is_transparent(&self) -> bool {
         matches!(self, Key::Transparent)
     }
 
     /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer) which holds the name.
     /// of a layer on the layout
-    pub fn is_layer(&self) -> bool {
+    pub const fn is_layer(&self) -> bool {
         matches!(self, Key::Layer { name: _ })
     }
 
     /// Get the output if the key is of type [`Key::Char`](crate::dofinitions::Key::Char).
-    pub fn char_output(&self) -> Option<char> {
+    pub const fn char_output(&self) -> Option<char> {
         match self {
             Key::Char(c) => Some(*c),
             _ => None,
@@ -547,20 +547,22 @@ impl KeyboardType {
     }
 
     /// Checks if the keyboard is Custom.
-    pub fn is_custom(&self) -> bool {
+    pub const fn is_custom(&self) -> bool {
         matches!(self, Self::Custom(_))
     }
 
     /// Get the default anchor for each keyboard type. This is (1, 1) for `Ansi` and `Iso` boards (as the
     /// vast majority of keyboard layouts doesn't remap the number row or special keys on the left) and
     /// (0, 0) for the rest.
-    pub fn anchor(&self) -> Anchor {
+    pub const fn anchor(&self) -> Anchor {
+        use KeyboardType::*;
+
         match self {
-            KeyboardType::Ansi => Anchor::new(1, 1),
-            KeyboardType::Iso => Anchor::new(1, 1),
-            KeyboardType::Ortho => Anchor::new(0, 0),
-            KeyboardType::Colstag => Anchor::new(0, 0),
-            KeyboardType::Custom(_) => Anchor::new(0, 0),
+            Ansi => Anchor::new(1, 1),
+            Iso => Anchor::new(1, 1),
+            Ortho => Anchor::new(0, 0),
+            Colstag => Anchor::new(0, 0),
+            Custom(_) => Anchor::new(0, 0),
         }
     }
 }

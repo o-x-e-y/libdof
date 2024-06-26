@@ -358,7 +358,7 @@ impl ParseKeyboard {
     /// Get the default anchor for a parsed kebyoard. This is (0, 0) for anything custom, (1, 1) for
     /// `Ansi` and `Iso` boards (as the vast majority of keyboard layouts doesn't remap the number
     /// row or special keys on the left) and (0, 0) for `Ortho` and `Colstag`.
-    pub fn anchor(&self) -> Anchor {
+    pub const fn anchor(&self) -> Anchor {
         match self {
             ParseKeyboard::Named(n) => n.anchor(),
             _ => Anchor(0, 0),
@@ -406,22 +406,22 @@ pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) ->
 
 impl PhysicalKey {
     /// Get the `x` coordinate.
-    pub fn x(&self) -> f64 {
+    pub const fn x(&self) -> f64 {
         self.x
     }
 
     /// Get the `y` coordinate.
-    pub fn y(&self) -> f64 {
+    pub const fn y(&self) -> f64 {
         self.y
     }
 
     /// Get the width of the key, which is the space from `x` to the right side of the key.
-    pub fn width(&self) -> f64 {
+    pub const fn width(&self) -> f64 {
         self.width
     }
 
     /// Get the height of the key, which is the space from `y` to the bottom of the key.
-    pub fn height(&self) -> f64 {
+    pub const fn height(&self) -> f64 {
         self.height
     }
 
