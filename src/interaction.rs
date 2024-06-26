@@ -12,18 +12,36 @@ pub struct Pos {
     col: usize,
 }
 
+impl Pos {
+    /// Create a new position based on a layer's row and column indices.
+    pub const fn new(row: usize, col: usize) -> Self {
+        Self { row, col }
+    }
+
+    /// Get the pos's row.
+    pub const fn row(&self) -> usize {
+        self.row
+    }
+
+    /// Get the pos's column.
+    pub const fn col(&self) -> usize {
+        self.col
+    }
+}
+
 impl From<(usize, usize)> for Pos {
     fn from((row, col): (usize, usize)) -> Self {
-        Pos { row, col }
+        Self { row, col }
     }
 }
 
 /// Represents a layer name along with a row and column on a keyboard. Can also be created by `(name, Pos).into()`
 /// or `(name, (row, col)).into()`.
-#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KeyPos {
+    /// Name of the layer the keypos refers to
     pub layer: String,
+    /// Row, col position of the key on the keyboard.
     pub pos: Pos,
 }
 
@@ -32,6 +50,26 @@ impl KeyPos {
     pub fn new(layer: &str, pos: Pos) -> Self {
         let layer = layer.into();
         Self { layer, pos }
+    }
+
+    /// Get the keypos' layer name
+    pub fn layer_name(&self) -> &str {
+        &self.layer
+    }
+
+    /// Get the keypos' pos
+    pub const fn pos(&self) -> &Pos {
+        &self.pos
+    }
+
+    /// Get the keypos's row.
+    pub const fn row(&self) -> usize {
+        self.pos.row
+    }
+
+    /// Get the keypos's column.
+    pub const fn col(&self) -> usize {
+        self.pos.col
     }
 }
 
