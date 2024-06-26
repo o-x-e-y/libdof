@@ -93,7 +93,7 @@ impl Dof {
 
         self.keys()
             .into_iter()
-            .filter(|dk| dk.output == key)
+            .filter(|dk| dk.output == &key)
             .map(|dk| dk.keypos())
             .collect::<Vec<_>>()
     }

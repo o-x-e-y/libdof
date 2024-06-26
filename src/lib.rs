@@ -8,7 +8,7 @@ mod macros;
 pub mod prelude;
 
 use interaction::{KeyPos, Pos};
-use keyboard::{ParseKeyboard, PhysicalKeyboard};
+use keyboard::{ParseKeyboard, PhysicalKey, PhysicalKeyboard};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
@@ -153,24 +153,26 @@ impl Dof {
     /// Get a vector of keys with metadata for each key attached. This can be useful if you want
     /// to filter or any other way look at a specific set of keys on the keyboard.
     pub fn keys(&self) -> Vec<DescriptiveKey> {
-        let mut keys = Vec::<DescriptiveKey>::new();
-
-        for (name, layer) in self.layers.iter() {
-            for (i, row) in layer.0.iter().enumerate() {
-                for (j, key) in row.iter().enumerate() {
-                    let finger = self.fingering.0[i][j];
-
-                    let i = i + self.anchor.0 as usize;
-                    let j = j + self.anchor.1 as usize;
-
-                    let key = DescriptiveKey::new(key.clone(), name.into(), i, j, finger);
-
-                    keys.push(key);
-                }
-            }
-        }
-
-        keys
+        self.layers()
+            .iter()
+            .flat_map(|(name, layer)| {
+                layer
+                    .rows()
+                    .enumerate()
+                    .zip(self.fingering.rows())
+                    .zip(self.board.rows())
+                    .flat_map(move |(((row, key_row), finger_row), phys_row)| {
+                        key_row
+                            .iter()
+                            .enumerate()
+                            .zip(finger_row)
+                            .zip(phys_row)
+                            .map(move |(((col, key), &finger), phys)| {
+                                DescriptiveKey::new(key, name, row, col, finger, phys)
+                            })
+                    })
+            })
+            .collect()
     }
 }
 
@@ -543,46 +545,54 @@ impl Anchor {
 }
 
 /// A Key with metadata attached. These are produced by calling [`Dof::keys()`](crate::Dof::keys()).
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct DescriptiveKey {
-    output: Key,
-    layer: String,
-    row: usize,
-    col: usize,
+#[derive(Clone, Debug, PartialEq)]
+pub struct DescriptiveKey<'a> {
+    output: &'a Key,
+    layer: &'a str,
+    pos: Pos,
     finger: Finger,
+    phys: &'a PhysicalKey,
 }
 
-impl DescriptiveKey {
-    /// Create a new DescriptiveKey. Mostly intended to be used internally, but go wild
-    pub fn new(output: Key, layer: String, row: usize, col: usize, finger: Finger) -> Self {
+impl<'a> DescriptiveKey<'a> {
+    /// Create a new DescriptiveKey.
+    fn new(
+        output: &'a Key,
+        layer: &'a str,
+        row: usize,
+        col: usize,
+        finger: Finger,
+        physical_pos: &'a PhysicalKey,
+    ) -> Self {
+        let pos = Pos::new(row, col);
         Self {
             output,
             layer,
-            row,
-            col,
+            pos,
             finger,
+            phys: physical_pos,
         }
     }
 
     /// Get the [`KeyPos`](crate::interaction::KeyPos) of a certain key, containing the layer name as well
     /// its row and column coordinates.
     pub fn keypos(&self) -> KeyPos {
-        (self.layer.as_str(), (self.row, self.col)).into()
+        KeyPos::new(self.layer, self.pos)
     }
 
     /// Get the key's row and column.
     pub fn pos(&self) -> Pos {
-        (self.row, self.col).into()
+        self.pos
     }
 
     /// Get the key's row.
     pub fn row(&self) -> usize {
-        self.row
+        self.pos.row()
     }
 
     /// Get the key's column.
     pub fn col(&self) -> usize {
-        self.col
+        self.pos.col()
     }
 
     /// Get the finger the key is supposed to be pressed with.
@@ -591,13 +601,18 @@ impl DescriptiveKey {
     }
 
     /// Get the key's output.
-    pub fn output(&self) -> &Key {
-        &self.output
+    pub const fn output(&self) -> &Key {
+        self.output
+    }
+
+    /// Get the key's physical location
+    pub const fn physical_pos(&self) -> &PhysicalKey {
+        self.phys
     }
 
     /// Get the name of the layer of the key.
     pub fn layer_name(&self) -> &str {
-        &self.layer
+        self.layer
     }
 
     /// Check if the key is on a certain finger.
@@ -611,10 +626,13 @@ impl DescriptiveKey {
     }
 
     /// Check if the key is on left hand, including left thumb.
-    pub fn is_on_left_hand(&self) -> bool {
-        use Finger::*;
+    pub const fn is_on_left_hand(&self) -> bool {
+        self.finger.is_on_left_hand()
+    }
 
-        matches!(self.finger, LP | LR | LM | LI | LT)
+    /// Check if the key is on left hand, including left thumb.
+    pub const fn is_on_right_hand(&self) -> bool {
+        self.finger.is_on_right_hand()
     }
 
     /// Check if the key is on a specific layer.
