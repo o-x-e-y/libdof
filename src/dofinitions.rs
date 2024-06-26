@@ -37,7 +37,7 @@ pub enum Hand {
     /// Left hand
     Left,
     /// Right hand
-    Right
+    Right,
 }
 
 impl Finger {
@@ -493,7 +493,7 @@ impl KeyboardType {
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+                vec![LP, LP, LT, LT, RT, RT, RP, RP],
             ]
             .into(),
             (Ansi, Angle) => vec![
@@ -501,7 +501,7 @@ impl KeyboardType {
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
                 vec![LP, LR, LM, LI, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+                vec![LP, LP, LT, LT, RT, RT, RP, RP],
             ]
             .into(),
             (Iso, Traditional) => vec![
@@ -509,7 +509,7 @@ impl KeyboardType {
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
                 vec![LP, LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+                vec![LP, LP, LT, LT, RT, RT, RP, RP],
             ]
             .into(),
             (Iso, Angle) => vec![
@@ -517,7 +517,7 @@ impl KeyboardType {
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP, RP],
                 vec![LP, LP, LR, LM, LI, LI, RI, RI, RM, RR, RP, RP, RP],
                 vec![LP, LP, LR, LM, LI, LI, LI, RI, RI, RM, RR, RP, RP],
-                vec![LP, LP, LT, LT, LT, RT, RT, RP],
+                vec![LP, LP, LT, LT, RT, RT, RP, RP],
             ]
             .into(),
             (Ortho, Traditional) => vec![
