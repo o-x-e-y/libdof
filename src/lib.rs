@@ -394,22 +394,34 @@ pub trait Keyboard {
     fn rows(&self) -> impl Iterator<Item = &Vec<Self::K>> {
         self.inner().iter()
     }
+
     /// Get an iterator over the individual keys of the keyboard.
     fn keys(&self) -> impl Iterator<Item = &Self::K> {
         self.rows().flatten()
     }
+
     /// Get the shape of the keyboard.
     fn shape(&self) -> Shape {
         self.rows().map(|r| r.len()).collect::<Vec<_>>().into()
     }
+
     /// Get the amount of rows of the keyboard.
     fn row_count(&self) -> usize {
         self.rows().count()
     }
+
     /// Get a reference to the inner rows of the keyboard.
     fn inner(&self) -> &[Vec<Self::K>];
+
     /// Convert into underlying vectors of the keyboard.
     fn into_inner(self) -> Vec<Vec<Self::K>>;
+
+    /// For each row of the keyboard, checks whether or not it's smaller or equal to the given
+    /// shape's row.
+    fn fits_in(&self, shape: &Shape) -> bool {
+        self.shape().fits_in(shape)
+    }
+
     /// Given a specific keyboard, an [`Anchor`](crate::Anchor) and the [`Shape`](crate::Shape),
     /// resize to the given shape. Returns an error if the shape is bigger than the provided keyboard.
     fn resized(&self, Anchor(x, y): Anchor, desired_shape: Shape) -> Result<Vec<Vec<Self::K>>> {
