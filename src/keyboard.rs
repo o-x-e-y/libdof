@@ -50,9 +50,9 @@ impl FromStr for PhysicalKey {
             .map_err(|_| DE::KeyParseError(trimmed.into()))?;
 
         match vals.as_slice() {
-            &[x, y] => Ok(xy(x, y)),
-            &[x, y, width] => Ok(xyw(x, y, width)),
-            &[x, y, width, height] => Ok(xywh(x, y, width, height)),
+            &[x, y] => Ok(Self::xy(x, y)),
+            &[x, y, width] => Ok(Self::xyw(x, y, width)),
+            &[x, y, width, height] => Ok(Self::xywh(x, y, width, height)),
             sl => Err(DE::ValueAmountError(sl.len(), trimmed.into()).into()),
         }
     }
@@ -179,7 +179,7 @@ impl TryFrom<KeyboardType> for PhysicalKeyboard {
                 ];
 
                 // ISO enter. This is an approximation because in reality it is not actually a rectangle.
-                iso[1].push(xywh(13.75, 2.0, 1.5, 2.0));
+                iso[1].push(PhysicalKey::xywh(13.75, 2.0, 1.5, 2.0));
 
                 iso
             }
@@ -191,48 +191,48 @@ impl TryFrom<KeyboardType> for PhysicalKeyboard {
             ],
             KeyboardType::Colstag => vec![
                 vec![
-                    xy(0.0, 0.45),
-                    xy(1.0, 0.15),
-                    xy(2.0, 0.0),
-                    xy(3.0, 0.15),
-                    xy(4.0, 0.30),
-                    xy(7.0, 0.30),
-                    xy(8.0, 0.15),
-                    xy(9.0, 0.0),
-                    xy(10.0, 0.15),
-                    xy(11.0, 0.45),
+                    PhysicalKey::xy(0.0, 0.45),
+                    PhysicalKey::xy(1.0, 0.15),
+                    PhysicalKey::xy(2.0, 0.0),
+                    PhysicalKey::xy(3.0, 0.15),
+                    PhysicalKey::xy(4.0, 0.30),
+                    PhysicalKey::xy(7.0, 0.30),
+                    PhysicalKey::xy(8.0, 0.15),
+                    PhysicalKey::xy(9.0, 0.0),
+                    PhysicalKey::xy(10.0, 0.15),
+                    PhysicalKey::xy(11.0, 0.45),
                 ],
                 vec![
-                    xy(0.0, 1.45),
-                    xy(1.0, 1.15),
-                    xy(2.0, 1.0),
-                    xy(3.0, 1.15),
-                    xy(4.0, 1.30),
-                    xy(7.0, 1.30),
-                    xy(8.0, 1.15),
-                    xy(9.0, 1.0),
-                    xy(10.0, 1.15),
-                    xy(11.0, 1.45),
+                    PhysicalKey::xy(0.0, 1.45),
+                    PhysicalKey::xy(1.0, 1.15),
+                    PhysicalKey::xy(2.0, 1.0),
+                    PhysicalKey::xy(3.0, 1.15),
+                    PhysicalKey::xy(4.0, 1.30),
+                    PhysicalKey::xy(7.0, 1.30),
+                    PhysicalKey::xy(8.0, 1.15),
+                    PhysicalKey::xy(9.0, 1.0),
+                    PhysicalKey::xy(10.0, 1.15),
+                    PhysicalKey::xy(11.0, 1.45),
                 ],
                 vec![
-                    xy(0.0, 2.45),
-                    xy(1.0, 2.15),
-                    xy(2.0, 2.0),
-                    xy(3.0, 2.15),
-                    xy(4.0, 2.30),
-                    xy(7.0, 2.30),
-                    xy(8.0, 2.15),
-                    xy(9.0, 2.0),
-                    xy(10.0, 2.15),
-                    xy(11.0, 2.45),
+                    PhysicalKey::xy(0.0, 2.45),
+                    PhysicalKey::xy(1.0, 2.15),
+                    PhysicalKey::xy(2.0, 2.0),
+                    PhysicalKey::xy(3.0, 2.15),
+                    PhysicalKey::xy(4.0, 2.30),
+                    PhysicalKey::xy(7.0, 2.30),
+                    PhysicalKey::xy(8.0, 2.15),
+                    PhysicalKey::xy(9.0, 2.0),
+                    PhysicalKey::xy(10.0, 2.15),
+                    PhysicalKey::xy(11.0, 2.45),
                 ],
                 vec![
-                    xy(2.4, 3.3),
-                    xy(3.5, 3.5),
-                    xy(4.7, 3.8),
-                    xy(6.3, 3.8),
-                    xy(7.5, 3.5),
-                    xy(8.6, 3.3),
+                    PhysicalKey::xy(2.4, 3.3),
+                    PhysicalKey::xy(3.5, 3.5),
+                    PhysicalKey::xy(4.7, 3.8),
+                    PhysicalKey::xy(6.3, 3.8),
+                    PhysicalKey::xy(7.5, 3.5),
+                    PhysicalKey::xy(8.6, 3.3),
                 ],
             ],
             c @ KeyboardType::Custom(_) => return Err(DE::UnknownKeyboardType(c).into()),
@@ -252,7 +252,7 @@ impl From<RelativeKeyboard> for PhysicalKeyboard {
 
                 r.into_iter()
                     .filter_map(|rk| {
-                        let r = xyw(x, y as f64, rk.width);
+                        let r = PhysicalKey::xyw(x, y as f64, rk.width);
                         x += rk.width;
                         rk.has_key.then_some(r)
                     })
@@ -389,33 +389,6 @@ impl TryFrom<ParseKeyboard> for PhysicalKeyboard {
     }
 }
 
-pub(crate) fn xy(x: f64, y: f64) -> PhysicalKey {
-    PhysicalKey {
-        x,
-        y,
-        width: 1.0,
-        height: 1.0,
-    }
-}
-
-pub(crate) fn xyw(x: f64, y: f64, width: f64) -> PhysicalKey {
-    PhysicalKey {
-        x,
-        y,
-        width,
-        height: 1.0,
-    }
-}
-
-pub(crate) fn xywh(x: f64, y: f64, width: f64, height: f64) -> PhysicalKey {
-    PhysicalKey {
-        x,
-        y,
-        width,
-        height,
-    }
-}
-
 pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) -> Vec<PhysicalKey> {
     let mut x = x_offset;
 
@@ -424,7 +397,7 @@ pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) ->
         .copied()
         .flat_map(|(width, count)| std::iter::repeat(width).take(count))
         .map(|w| {
-            let pk = xyw(x, y_offset, w);
+            let pk = PhysicalKey::xyw(x, y_offset, w);
             x += w;
             pk
         })
@@ -451,6 +424,36 @@ impl PhysicalKey {
     pub fn height(&self) -> f64 {
         self.height
     }
+
+    /// Create a new key with x, y coordinates where the width and height are set to 1.0.
+    pub const fn xy(x: f64, y: f64) -> Self {
+        Self {
+            x,
+            y,
+            width: 1.0,
+            height: 1.0,
+        }
+    }
+
+    /// Create a new key with x, y coordinates and a width, with a set height of 1.0.
+    pub const fn xyw(x: f64, y: f64, width: f64) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height: 1.0,
+        }
+    }
+
+    /// Create a new key with x, y coordinates, a width and a height.
+    pub const fn xywh(x: f64, y: f64, width: f64, height: f64) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
 }
 
 impl From<ParseFloatError> for DofError {
@@ -473,14 +476,14 @@ mod tests {
         let k5 = "0.1 0.2".parse::<PhysicalKey>();
         let k6 = "".parse::<PhysicalKey>();
 
-        assert_eq!(k1, Ok(xy(0.0, 0.0)));
-        assert_eq!(k2, Ok(xywh(1.0, 2.0, 3.0, 1.0)));
-        assert_eq!(k3, Ok(xywh(0.0, 0.0, 4.0, 2.0)));
+        assert_eq!(k1, Ok(PhysicalKey::xy(0.0, 0.0)));
+        assert_eq!(k2, Ok(PhysicalKey::xywh(1.0, 2.0, 3.0, 1.0)));
+        assert_eq!(k3, Ok(PhysicalKey::xywh(0.0, 0.0, 4.0, 2.0)));
         assert_eq!(
             k4,
             Err(DofError::from(DE::ValueAmountError(1, "0.1".into())))
         );
-        assert_eq!(k5, Ok(xy(0.1, 0.2)));
+        assert_eq!(k5, Ok(PhysicalKey::xy(0.1, 0.2)));
         assert_eq!(k6, Err(DofError::from(DE::EmptyPhysKey)));
     }
 
