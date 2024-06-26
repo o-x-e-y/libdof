@@ -31,6 +31,15 @@ pub enum Finger {
     RP,
 }
 
+/// Enum to specify both hands. Used in combination with [`Finger`](crate::dofinitions::Finger).
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum Hand {
+    /// Left hand
+    Left,
+    /// Right hand
+    Right
+}
+
 impl Finger {
     /// Array containing all 10 fingers in order from `LP` to `RP`.
     pub const FINGERS: [Self; 10] = [
@@ -45,6 +54,51 @@ impl Finger {
         Self::RR,
         Self::RP,
     ];
+
+    /// Checks if the finger is left or right pinky
+    pub const fn is_pinky(&self) -> bool {
+        matches!(self, Self::LP | Self::RP)
+    }
+
+    /// Checks if the finger is left or right ring
+    pub const fn is_ring(&self) -> bool {
+        matches!(self, Self::LR | Self::RR)
+    }
+
+    /// Checks if the finger is left or right middle
+    pub const fn is_middle(&self) -> bool {
+        matches!(self, Self::LM | Self::RM)
+    }
+
+    /// Checks if the finger is left or right index
+    pub const fn is_index(&self) -> bool {
+        matches!(self, Self::LI | Self::RI)
+    }
+
+    /// Checks if the finger is left or right thumb
+    pub const fn is_thumb(&self) -> bool {
+        matches!(self, Self::LT | Self::RT)
+    }
+
+    /// Returns which `Hand` the finger is on.
+    pub const fn hand(&self) -> Hand {
+        use Finger::*;
+
+        match self {
+            LP | LR | LM | LI | LT => Hand::Left,
+            RP | RR | RM | RI | RT => Hand::Right,
+        }
+    }
+
+    /// Checks if the finger is on the left hand (includes thumb)
+    pub const fn is_on_left_hand(&self) -> bool {
+        matches!(self.hand(), Hand::Left)
+    }
+
+    /// Checks if the finger is on the right hand (includes thumb)
+    pub const fn is_on_right_hand(&self) -> bool {
+        matches!(self.hand(), Hand::Right)
+    }
 }
 
 impl Display for Finger {
