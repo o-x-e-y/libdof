@@ -444,12 +444,17 @@ impl Shape {
         self.0.len()
     }
 
-    /// If all rows of this shape <= the rows of the destination, it fits into the other
+    /// Get an iterator over each row of the keyboard.
+    fn rows(&self) -> impl Iterator<Item = &usize> {
+        self.inner().iter()
+    }
+
+    /// For each row, checks whether or not it's smaller or equal to the given shape's row.
     pub fn fits_in(&self, cmp: &Self) -> bool {
         if self.row_count() > cmp.row_count() {
             false
         } else {
-            self.inner().iter().zip(cmp.inner()).all(|(r, c)| r <= c)
+            self.rows().zip(cmp.rows()).all(|(s, c)| s <= c)
         }
     }
 }
