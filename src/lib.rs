@@ -208,6 +208,13 @@ impl TryFrom<DofIntermediate> for Dof {
 
         let board = PhysicalKeyboard::try_from(inter.board.clone())?
             .resized(anchor, explicit_fingering.shape())?
+            .into_iter()
+            .map(|v| {
+                v.into_iter()
+                    .map(PhysicalKey::normalized)
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>()
             .into();
 
         let languages = match inter.languages {

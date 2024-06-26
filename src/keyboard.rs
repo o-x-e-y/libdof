@@ -21,6 +21,78 @@ pub struct PhysicalKey {
     height: f64,
 }
 
+impl PhysicalKey {
+    /// Get the `x` coordinate.
+    pub const fn x(&self) -> f64 {
+        self.x
+    }
+
+    /// Get the `y` coordinate.
+    pub const fn y(&self) -> f64 {
+        self.y
+    }
+
+    /// Get the width of the key, which is the space from `x` to the right side of the key.
+    pub const fn width(&self) -> f64 {
+        self.width
+    }
+
+    /// Get the height of the key, which is the space from `y` to the bottom of the key.
+    pub const fn height(&self) -> f64 {
+        self.height
+    }
+
+    /// Create a new key with x, y coordinates where the width and height are set to 1.0.
+    pub const fn xy(x: f64, y: f64) -> Self {
+        Self {
+            x,
+            y,
+            width: 1.0,
+            height: 1.0,
+        }
+    }
+
+    /// Create a new key with x, y coordinates and a width, with a set height of 1.0.
+    pub const fn xyw(x: f64, y: f64, width: f64) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height: 1.0,
+        }
+    }
+
+    /// Create a new key with x, y coordinates, a width and a height.
+    pub const fn xywh(x: f64, y: f64, width: f64, height: f64) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+
+    /// If width or height are negative, moves `x` and `y` coordinates around accordingly
+    pub(crate) fn normalized(self) -> Self {
+        let (x, width) = match self.width < 0.0 {
+            true => (self.x + self.width, self.width.abs()),
+            false => (self.x, self.width),
+        };
+
+        let (y, height) = match self.height < 0.0 {
+            true => (self.y + self.height, self.height.abs()),
+            false => (self.y, self.height),
+        };
+
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+}
+
 impl std::fmt::Display for PhysicalKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let omit = |v: f64| v >= 0.999999 || v <= 1.000001;
@@ -402,58 +474,6 @@ pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) ->
             pk
         })
         .collect()
-}
-
-impl PhysicalKey {
-    /// Get the `x` coordinate.
-    pub const fn x(&self) -> f64 {
-        self.x
-    }
-
-    /// Get the `y` coordinate.
-    pub const fn y(&self) -> f64 {
-        self.y
-    }
-
-    /// Get the width of the key, which is the space from `x` to the right side of the key.
-    pub const fn width(&self) -> f64 {
-        self.width
-    }
-
-    /// Get the height of the key, which is the space from `y` to the bottom of the key.
-    pub const fn height(&self) -> f64 {
-        self.height
-    }
-
-    /// Create a new key with x, y coordinates where the width and height are set to 1.0.
-    pub const fn xy(x: f64, y: f64) -> Self {
-        Self {
-            x,
-            y,
-            width: 1.0,
-            height: 1.0,
-        }
-    }
-
-    /// Create a new key with x, y coordinates and a width, with a set height of 1.0.
-    pub const fn xyw(x: f64, y: f64, width: f64) -> Self {
-        Self {
-            x,
-            y,
-            width,
-            height: 1.0,
-        }
-    }
-
-    /// Create a new key with x, y coordinates, a width and a height.
-    pub const fn xywh(x: f64, y: f64, width: f64, height: f64) -> Self {
-        Self {
-            x,
-            y,
-            width,
-            height,
-        }
-    }
 }
 
 impl From<ParseFloatError> for DofError {
