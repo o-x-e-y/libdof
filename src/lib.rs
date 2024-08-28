@@ -362,8 +362,8 @@ impl From<DofErrorInner> for DofError {
 /// The Default implementation of Language is English with weight 100.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Language {
-    language: String,
-    weight: usize,
+    pub language: String,
+    pub weight: usize,
 }
 
 impl Default for Language {
