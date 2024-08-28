@@ -208,16 +208,22 @@ pub enum SpecialKey {
 ///     - `Key::Layer` if it leads with an `@`.
 ///     - `Key::Word` with its first character removed if it starts with `#`, `\\#` or`\\@`,
 ///     - `Key::Word` otherwise.
-#[allow(missing_docs)]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Key {
     #[default]
+    /// Outputs nothing.
     Empty,
+    /// Outputs whatever is in on the main layer. Equivalent to `Empty` if on main layer.
     Transparent,
+    /// Outputs a single character.
     Char(char),
+    /// Outputs multiple characters.
     Word(String),
+    /// Outputs a [`SpecialKey`](crate::dofinitions::SpecialKey) like shift or control.
     Special(SpecialKey),
+    /// Redirects to a different layer when held.
     Layer {
+        /// Name of the layer.
         name: String,
     },
 }
