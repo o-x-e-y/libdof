@@ -2,7 +2,7 @@
 
 use crate::{
     dofinitions::{Finger, Key},
-    Dof, DofErrorInner as DE, Result,
+    Dof, DofErrorInner as DE, Layer, Result,
 };
 
 /// Represents a (row, column) position on a keyboard. Can be created by `(num, num).into()`.
@@ -86,6 +86,39 @@ impl From<(&str, (usize, usize))> for KeyPos {
     }
 }
 
+impl Layer {
+    /// Gets a reference to a key from a particular layer given a row and a column.
+    pub fn get_key(&self, pos: Pos) -> Result<&Key> {
+        let key = self
+            .0
+            .get(pos.row)
+            .ok_or(DE::InvalidPosition(pos.row as u8, pos.col as u8))?
+            .get(pos.col)
+            .ok_or(DE::InvalidPosition(pos.row as u8, pos.col as u8))?;
+
+        Ok(key)
+    }
+
+    /// Gets a mutable reference to a key from a particular layer given a row and a column.
+    pub fn get_key_mut(&mut self, pos: Pos) -> Result<&mut Key> {
+        let key = self
+            .0
+            .get_mut(pos.row)
+            .ok_or(DE::InvalidPosition(pos.row as u8, pos.col as u8))?
+            .get_mut(pos.col)
+            .ok_or(DE::InvalidPosition(pos.row as u8, pos.col as u8))?;
+
+        Ok(key)
+    }
+
+    ///Sets a key at a particular position.
+    pub fn set_key(&mut self, pos: Pos, key: Key) -> Result<()> {
+        *self.get_key_mut(pos)? = key;
+
+        Ok(())
+    }
+}
+
 impl Dof {
     /// Get every `KeyPos` that matches the given key. This can be multiple keys.
     pub fn get(&self, key: impl Into<Key>) -> Vec<KeyPos> {
@@ -136,31 +169,14 @@ impl Dof {
 
             let layer = self
                 .layers
-                .remove(&layer_name1)
+                .get_mut(&layer_name1)
                 .ok_or(DE::LayerDoesntExist(layer_name1.clone()))?;
 
-            let char1 = layer
-                .0
-                .get(pos1.row)
-                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?
-                .get(pos1.col)
-                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
+            let key1 = layer.get_key(pos1).cloned()?;
+            let key2 = layer.get_key(pos2).cloned()?;
 
-            let char2 = layer
-                .0
-                .get(pos2.row)
-                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?
-                .get(pos2.col)
-                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
-
-            let char1 = char1 as *const _ as *mut Key;
-            let char2 = char2 as *const _ as *mut Key;
-
-            unsafe {
-                std::ptr::swap(char1, char2);
-            }
-
-            self.layers.insert(layer_name1.clone(), layer);
+            layer.set_key(pos1, key2)?;
+            layer.set_key(pos2, key1)?;
         } else {
             let mut layer1 = self
                 .layers
@@ -172,21 +188,10 @@ impl Dof {
                 .remove(&layer_name2)
                 .ok_or(DE::LayerDoesntExist(layer_name2.clone()))?;
 
-            let char1 = layer1
-                .0
-                .get_mut(pos1.row)
-                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?
-                .get_mut(pos1.col)
-                .ok_or(DE::InvalidPosition(pos1.row as u8, pos1.col as u8))?;
+            let key1 = layer1.get_key_mut(pos1)?;
+            let key2 = layer2.get_key_mut(pos2)?;
 
-            let char2 = layer2
-                .0
-                .get_mut(pos2.row)
-                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?
-                .get_mut(pos2.col)
-                .ok_or(DE::InvalidPosition(pos2.row as u8, pos2.col as u8))?;
-
-            std::mem::swap(char1, char2);
+            std::mem::swap(key1, key2);
 
             self.layers.insert(layer_name1, layer1);
             self.layers.insert(layer_name2, layer2);
@@ -251,6 +256,8 @@ mod tests {
         minimal_clone
             .swap(swap1.clone(), swap2.clone())
             .expect("couldn't swap because");
+
+        assert_ne!(minimal_json, minimal_clone);
 
         minimal_clone
             .swap(swap1, swap2)
