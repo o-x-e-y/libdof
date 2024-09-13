@@ -1,6 +1,8 @@
 {
     "name": "Qwerty",
-    "authors": ["Christopher Latham Sholes"],
+    "authors": [
+        "Christopher Latham Sholes"
+    ],
     "year": 1878,
     "description": "the OG. Without Qwerty, none of this would be necessary.",
     "link": "https://en.wikipedia.org/wiki/QWERTY",
@@ -11,22 +13,31 @@
             "tb q w e r t  y u i o p [ ] \\",
             "cps a s d f g  h j k l ; ' ret",
             "shft z x c v b  n m , . / shft",
-            "~ ~ ~ ß      spc    @altgr ~ ~"
+            "~ ~ ~     spc     @altgr ~ ~ ß"
         ],
         "shift": [
             "\\~ ! @ # $ %  ^ & \\* ( ) _ + bsp",
             "tab  Q W E R T  Y U   I O P { } |",
             "caps  A S D F G  H J   K L : \" ent",
             "sft    Z X C V B  N M   < > ? shft",
-            "~ ~ ~ SS       spc     altgr ~ ~"
+            "~ ~ ~        spc      altgr ~ ~ SS"
         ],
         "altgr": [
             "* * * * * *   * * * * * * * bsp",
             "tb * * * * #tb * ü * ö * * * *",
             "cps ä * * * *   * * * * * * ret",
             "shft * * * * *   * * * * * shft",
-            "~ ~ ~ ~      spc      * ~ ~"
+            "~ ~ ~         spc       * ~ ~ ~"
         ]
+    },
+    "combos": {
+        "main": {
+            "d f": "x",
+            "j k": "6"
+        },
+        "shift": {
+            "sft-2 ?": "X"
+        }
     },
     "board": [
         "k    k k k k k   k k k k k k k 2k",

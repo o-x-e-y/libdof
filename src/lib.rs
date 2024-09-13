@@ -1,12 +1,14 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
 
+pub mod combos;
 pub mod dofinitions;
 pub mod interaction;
 pub mod keyboard;
 mod macros;
 pub mod prelude;
 
+use combos::{Combos, ParseCombos};
 use interaction::{KeyPos, Pos};
 use keyboard::{ParseKeyboard, PhysicalKey, PhysicalKeyboard};
 use serde::{Deserialize, Serialize};
@@ -51,7 +53,7 @@ pub struct Dof {
     layers: BTreeMap<String, Layer>,
     anchor: Anchor,
     // alt_fingerings: Option<Vec<String>>,
-    // combos: Option<HashMap<String, String>>,
+    combos: Combos,
     fingering: Fingering,
     fingering_name: Option<NamedFingering>,
     has_generated_shift: bool,
@@ -222,6 +224,14 @@ impl TryFrom<DofIntermediate> for Dof {
             None => vec![Language::default()],
         };
 
+        let combos = match inter.combos {
+            Some(combos) => combos.into_pos_layers(&inter.layers)?,
+            None => Default::default(),
+            // None => Combos(inter.layers.iter()
+            //     .map(|(name, _)| (name.to_owned(), vec![]))
+            //     .collect())
+        };
+
         Ok(Self {
             name: inter.name,
             authors: inter.authors,
@@ -233,6 +243,7 @@ impl TryFrom<DofIntermediate> for Dof {
             link: inter.link,
             layers: inter.layers,
             anchor,
+            combos,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
             has_generated_shift,
@@ -270,6 +281,8 @@ impl From<Dof> for DofIntermediate {
             _ => None,
         };
 
+        let combos = dof.combos.into_parse_combos(&dof.layers);
+
         DofIntermediate {
             name: dof.name,
             authors: dof.authors,
@@ -280,6 +293,7 @@ impl From<Dof> for DofIntermediate {
             link: dof.link,
             layers: dof.layers,
             anchor,
+            combos,
             fingering,
         }
     }
@@ -299,6 +313,13 @@ enum DofErrorInner {
     LayoutDoesntFit,
     #[error("The anchor provided is bigger than the layout it is used for")]
     AnchorBiggerThanLayout,
+    #[error("Combo key provided is empty. If this was intended, provide `~` instead.")]
+    EmptyComboKey,
+
+    #[error("Layer {0} containing combo {1} does not exist")]
+    UnknownComboLayer(String, String),
+    #[error("Combo {0} references key {1} at index {2}, which doesn't exist")]
+    InvalidKeyIndex(String, String, usize),
 
     #[error("Couldn't parse Finger from '{0}'")]
     FingerParseError(String),
@@ -712,8 +733,6 @@ impl<'a> DescriptiveKey<'a> {
 pub struct DofIntermediate {
     pub name: String,
     pub authors: Option<Vec<String>>,
-    // #[serde_as(as = "DisplayFromStr")]
-    // pub board: KeyboardType,
     pub board: ParseKeyboard,
     pub year: Option<u32>,
     pub description: Option<String>,
@@ -722,7 +741,7 @@ pub struct DofIntermediate {
     pub layers: BTreeMap<String, Layer>,
     pub anchor: Option<Anchor>,
     // pub alt_fingerings: Option<Vec<String>>,
-    // pub combos: Option<HashMap<String, String>>,
+    pub combos: Option<ParseCombos>,
     pub fingering: Option<ParsedFingering>,
 }
 
@@ -736,7 +755,7 @@ impl DofIntermediate {
     /// if your shift layer isn't doing anything special. The defaults are:
     /// * Letters are uppercased, unless their uppercase version spans multiple characters,
     /// * Symbols and numbers are given their qwerty uppercase. This means that `7` becomes `&`, `'`
-    /// becomes `"`, `[` becomes `{`, etc,
+    ///   becomes `"`, `[` becomes `{`, etc,
     /// * Special keys become Transparent.
     ///
     /// **Words are unaffected!** This means that if you would like Word keys to output something different,
@@ -834,6 +853,7 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingering: Some(ParsedFingering::Implicit(NamedFingering::Angle)),
+            combos: None,
         };
 
         let v = Dof::try_from(minimal_test);
@@ -856,6 +876,7 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingering: None,
+            combos: None,
         };
 
         let dof_minimal = serde_json::from_str::<DofIntermediate>(minimal_json)
@@ -974,6 +995,7 @@ mod tests {
                     ]),
                 ),
             ]),
+            combos: Default::default(),
             fingering: {
                 vec![
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
@@ -1112,6 +1134,7 @@ mod tests {
                     .into(),
                 ),
             ]),
+            combos: Default::default(),
             fingering: {
                 vec![
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
@@ -1135,7 +1158,7 @@ mod tests {
 
     #[test]
     fn maximal_succesful() {
-        let maximal_json = include_str!("../example_dofs/minimal_valid.dof");
+        let maximal_json = include_str!("../example_dofs/maximal.dof");
 
         serde_json::from_str::<Dof>(maximal_json).expect("Couldn't parse or validate Dof");
     }
@@ -1153,6 +1176,7 @@ mod tests {
             anchor: None,
             layers: BTreeMap::new(),
             fingering: Some(ParsedFingering::Implicit(NamedFingering::Angle)),
+            combos: None,
         };
 
         let s = serde_json::to_string_pretty(&minimal_test).unwrap();
@@ -1179,6 +1203,7 @@ mod tests {
 
     #[test]
     fn parse_maximal() {
+        use combos::ck;
         use Finger::*;
         use Key::*;
         use SpecialKey::*;
@@ -1262,13 +1287,13 @@ mod tests {
                             Empty,
                             Empty,
                             Empty,
-                            Char('ß'),
                             Special(Space),
                             Layer {
                                 name: "altgr".into(),
                             },
                             Empty,
                             Empty,
+                            Char('ß'),
                         ],
                     ]),
                 ),
@@ -1340,11 +1365,11 @@ mod tests {
                             Empty,
                             Empty,
                             Empty,
-                            Word("SS".into()),
                             Special(Space),
                             Word("altgr".into()),
                             Empty,
                             Empty,
+                            Word("SS".into()),
                         ],
                     ]),
                 ),
@@ -1416,9 +1441,9 @@ mod tests {
                             Empty,
                             Empty,
                             Empty,
-                            Empty,
                             Special(Space),
                             Transparent,
+                            Empty,
                             Empty,
                             Empty,
                         ],
@@ -1507,6 +1532,19 @@ mod tests {
                     rk(1.25),
                 ],
             ])),
+            combos: Some(ParseCombos(BTreeMap::from([
+                (
+                    "main".to_string(),
+                    BTreeMap::from([
+                        (vec![ck(Char('d'), 0), ck(Char('f'), 0)], Char('x')),
+                        (vec![ck(Char('j'), 0), ck(Char('k'), 0)], Char('6')),
+                    ]),
+                ),
+                (
+                    "shift".to_string(),
+                    BTreeMap::from([(vec![ck(Special(Shift), 1), ck(Char('?'), 0)], Char('X'))]),
+                ),
+            ]))),
         };
 
         let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)
