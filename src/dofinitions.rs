@@ -173,7 +173,7 @@ impl FromStr for NamedFingering {
 /// Covers a wide range of keys that don't necessarily output characters, but are still commonly found on a
 /// keyboard. Shift is meant to function the same as a `Key::Layer { layer: "shift" }` key.
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SpecialKey {
     Esc,
     Repeat,
