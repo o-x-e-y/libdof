@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, num::ParseFloatError};
 
 use dofinitions::*;
 
@@ -355,9 +355,11 @@ impl From<DofErrorInner> for DofError {
     }
 }
 
-/// Used to represent the language(s) a layout is optimized for, containing the name of a language as well as
-/// a weight, the latter being useful for layouts that are made for a combination of languages with some
-/// amount of % split.
+impl From<ParseFloatError> for DofError {
+    fn from(value: ParseFloatError) -> Self {
+        DErr::ParseFloatError(value).into()
+    }
+}
 ///
 /// The Default implementation of Language is English with weight 100.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -480,7 +482,7 @@ impl From<Vec<Vec<Finger>>> for Fingering {
     }
 }
 
-keyboard_conv!(Fingering, Finger, FingeringStrAsRow);
+keyboard_conv!(Finger, FingeringStrAsRow);
 
 /// Abstraction over the way an actual .dof file is allowed to represent the fingering of a layout, being either
 /// explicit through providing a list of fingerings for each key, or implicit, by providing a name.
@@ -524,7 +526,7 @@ impl From<Vec<Vec<Key>>> for Layer {
     }
 }
 
-keyboard_conv!(Layer, Key, LayerStrAsRow);
+keyboard_conv!(Key, LayerStrAsRow);
 
 /// An anchor represents where the top left key on a `Dof` is compared to where it would be on a physical
 /// keyboard. For example, if you were to provide a 3x10 raster of letters but would like this applied to an

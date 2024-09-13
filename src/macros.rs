@@ -8,7 +8,7 @@
 /// Macro to generate a `serde_conv` implementation for anything that would also implement
 /// [`Keyboard`](crate::Keyboard).
 macro_rules! keyboard_conv {
-    ($type:ty, $ret:ty, $alias:ident) => {
+    ($ret:ty, $alias:ident) => {
         serde_with::serde_conv!(
             $alias,
             Vec<$ret>,

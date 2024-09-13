@@ -1,7 +1,6 @@
 //! Contains the `Keyboard` struct and helpers which can be used to describe physical keyboards.
 
-use std::str::FromStr;
-use std::{cmp::Ordering, num::ParseFloatError};
+use std::{cmp::Ordering, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
@@ -216,7 +215,7 @@ impl From<Vec<Vec<RelativeKey>>> for RelativeKeyboard {
     }
 }
 
-keyboard_conv!(RelativeKeyboard, RelativeKey, RelativeKeyboardRow);
+keyboard_conv!(RelativeKey, RelativeKeyboardRow);
 
 /// Representation of a physical keyboard using a keyboard type and an optional anchor. If these are
 /// known defaults, it can be converted to a physical keyboard directly.
@@ -474,12 +473,6 @@ pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) ->
             pk
         })
         .collect()
-}
-
-impl From<ParseFloatError> for DofError {
-    fn from(value: ParseFloatError) -> Self {
-        DE::ParseFloatError(value).into()
-    }
 }
 
 #[cfg(test)]
