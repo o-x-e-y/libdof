@@ -360,11 +360,18 @@ impl From<ParseFloatError> for DofError {
         DErr::ParseFloatError(value).into()
     }
 }
+
+/// Used to represent the language(s) a layout is optimized for, containing the name of a language
+/// as well as a weight, the latter being useful for layouts that are made for a combination of
+/// languages with some amount of % split.
 ///
 /// The Default implementation of Language is English with weight 100.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Language {
+    /// Language
     pub language: String,
+    /// Weight of the language, meaning how important it is compared to possible other languages in
+    /// the `Dof`.
     pub weight: usize,
 }
 
