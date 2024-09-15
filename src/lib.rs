@@ -220,7 +220,10 @@ impl TryFrom<DofIntermediate> for Dof {
             .into();
 
         let languages = match inter.languages {
-            Some(l) => l,
+            Some(l) => l
+                .into_iter()
+                .map(|(lang, weight)| Language::new(&lang, weight))
+                .collect::<Vec<_>>(),
             None => vec![Language::default()],
         };
 
@@ -270,7 +273,12 @@ impl From<Dof> for DofIntermediate {
 
         let languages = match dof.languages.as_slice() {
             [lang] if lang == &Language::default() => None,
-            _ => Some(dof.languages.clone()),
+            _ => Some(
+                dof.languages
+                    .into_iter()
+                    .map(|l| (l.language, l.weight))
+                    .collect(),
+            ),
         };
 
         let anchor = match &dof.parsed_board {
@@ -736,7 +744,7 @@ pub struct DofIntermediate {
     pub board: ParseKeyboard,
     pub year: Option<u32>,
     pub description: Option<String>,
-    pub languages: Option<Vec<Language>>,
+    pub languages: Option<BTreeMap<String, usize>>,
     pub link: Option<String>,
     pub layers: BTreeMap<String, Layer>,
     pub anchor: Option<Anchor>,
@@ -1215,7 +1223,7 @@ mod tests {
             authors: Some(vec!["Christopher Latham Sholes".into()]),
             year: Some(1878),
             description: Some("the OG. Without Qwerty, none of this would be necessary.".into()),
-            languages: None,
+            languages: Some(BTreeMap::from_iter([("english".to_owned(), 100)])),
             link: Some("https://en.wikipedia.org/wiki/QWERTY".into()),
             anchor: Some(Anchor::new(0, 0)),
             layers: BTreeMap::from_iter([

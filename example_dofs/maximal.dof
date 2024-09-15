@@ -6,6 +6,9 @@
     "year": 1878,
     "description": "the OG. Without Qwerty, none of this would be necessary.",
     "link": "https://en.wikipedia.org/wiki/QWERTY",
+    "languages": {
+        "english": 100
+    },
     "anchor": [0, 0],
     "layers": {
         "main": [
