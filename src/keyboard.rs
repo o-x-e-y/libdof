@@ -258,7 +258,7 @@ impl TryFrom<KeyboardType> for PhysicalKeyboard {
                 phys_row(&[(1.0, 10)], 0.0, 0.0),
                 phys_row(&[(1.0, 10)], 0.0, 1.0),
                 phys_row(&[(1.0, 10)], 0.0, 2.0),
-                phys_row(&[(1.0, 6)], 3.0, 3.0),
+                phys_row(&[(1.0, 6)], 2.0, 3.0),
             ],
             KeyboardType::Colstag => vec![
                 vec![
