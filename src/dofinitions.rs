@@ -223,6 +223,9 @@ pub enum Key {
     Special(SpecialKey),
     /// Redirects to a different layer when held.
     Layer {
+        /// Layer key's label.
+        label: String,
+    },
     /// Specifies a magic key.
     Magic {
         /// Magic key's label.
@@ -299,6 +302,7 @@ impl Key {
     /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer), which holds the
     /// name of a particular layer on the layout
     pub const fn is_layer(&self) -> bool {
+        matches!(self, Key::Layer { label: _ })
     }
 
     /// Check if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic) which holds the
@@ -326,6 +330,7 @@ impl Key {
     /// Get the layer label if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
     pub fn layer_label(&self) -> Option<&str> {
         match &self {
+            Key::Layer { label } => Some(label),
             _ => None,
         }
     }
@@ -368,6 +373,7 @@ impl Display for Key {
                 Backspace => "bsp".into(),
                 Del => "del".into(),
             },
+            Layer { label } => format!("@{label}"),
             Magic { label } => format!("&{label}"),
         };
 
@@ -421,6 +427,7 @@ where
                 "backspace" | "bksp" | "bcsp" | "bsp" => Special(Backspace),
                 "del" => Special(Del),
                 _ if s.starts_with('@') => Layer {
+                    label: s.chars().skip(1).collect(),
                 },
                 _ if s.starts_with('&') => Magic {
                     label: s.chars().skip(1).collect(),

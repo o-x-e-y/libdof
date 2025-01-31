@@ -739,6 +739,7 @@ impl<'a> DescriptiveKey<'a> {
 
     /// Get the layer name if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
     pub fn layer_output(&self) -> Option<&str> {
+        self.output.layer_label()
     }
 
      /// Get the magic key label if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic).
@@ -799,7 +800,7 @@ impl DofIntermediate {
         let layers_dont_exist = main
             .keys()
             .filter_map(|k| match k {
-                Key::Layer { name: n } if !self.layers.contains_key(n) => Some(n.clone()),
+                Key::Layer { label: n } if !self.layers.contains_key(n) => Some(n.clone()),
                 _ => None,
             })
             .collect::<Vec<_>>();
@@ -1323,7 +1324,7 @@ mod tests {
                             },
                             Special(Space),
                             Layer {
-                                name: "altgr".into(),
+                                label: "altgr".into(),
                             },
                             Empty,
                             Empty,

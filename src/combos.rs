@@ -151,8 +151,8 @@ impl Combos {
         let parse_combos = self
             .0
             .into_iter()
-            .map(|(name, combos)| {
-                let layer = &layers.get(&name).unwrap().0;
+            .map(|(layer_label, combos)| {
+                let layer = &layers.get(&layer_label).unwrap().0;
 
                 let layer_combos = combos
                     .into_iter()
@@ -176,7 +176,7 @@ impl Combos {
                         (combo, key)
                     })
                     .collect();
-                (name, layer_combos)
+                (layer_label, layer_combos)
             })
             .collect();
 
