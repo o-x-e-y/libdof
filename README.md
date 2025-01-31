@@ -15,9 +15,9 @@ It has a set amount of (sometimes `optional*`) fields:
     layer is an array of rows specified by a string consisting of keys delimited by any amount of
     whitespace. They work like the following:
     * If the string length is 1, output:
-        * An empty key when it's equal to `~`
+        * An empty key when it's equal to `~`,
         * A transparent key when it's equal to `*`, which refers to the value on the main layer.
-            This is equivalent to `~` when on the main layer.
+            This is equivalent to `~` when on the main layer,
         * Enter when it's equal to `\n`,
         * Tab when it's equal to `\t`,
         * A character key otherwise.
@@ -26,7 +26,8 @@ It has a set amount of (sometimes `optional*`) fields:
         * `~` and `*` characters if it contains `\\~` and `\\*` respectively,
         * A special key like shift or space when provided with specific identifiers which can be
             found at the bottom of the document,
-        * A layer key if it leads with an `@`, for example `@altgr`
+        * A layer key if it leads with an `@`, for example `@altgr`,
+        * A magic key if it leads with an `&`, for example `&mgc`,
         * A word key with its first character removed if it leads with `#`, `\\#` or`\\@`, for
             example `\\@altgr` would output `@altgr` rather than become an altgr layer key,
         * A word key, which outputs multiple characters at the same time, otherwise.
@@ -99,6 +100,9 @@ It has a set amount of (sometimes `optional*`) fields:
     the `main` layer, this means that if you pressed the first (starting top-left) and second `k`
     together, they output the repeat key. Index `0` and `1` are equivalent here, and do not have to
     be specified.
+
+* `magic{}`: Allows you to specify magic key(s) for the layout. Every magic key has a label, which
+    has a map inside. You can then specify rules as being `"leading": "output after magic press"`.
 
 For all of these, it might be worth it to check out the
 [example dofs](https://github.com/O-X-E-Y/libdof/tree/main/example_dofs).

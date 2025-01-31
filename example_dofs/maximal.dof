@@ -16,21 +16,21 @@
             "tb q w e r t  y u i o p [ ] \\",
             "cps a s d f g  h j k l ; ' ret",
             "shft z x c v b  n m , . / shft",
-            "~ ~ ~     spc     @altgr ~ ~ ß"
+            "~ ~ &mgc    spc   @altgr ~ ~ ß"
         ],
         "shift": [
             "\\~ ! @ # $ %  ^ & \\* ( ) _ + bsp",
             "tab  Q W E R T  Y U   I O P { } |",
             "caps  A S D F G  H J   K L : \" ent",
             "sft    Z X C V B  N M   < > ? shft",
-            "~ ~ ~        spc      altgr ~ ~ SS"
+            "~ ~ &mgc      spc     altgr ~ ~ SS"
         ],
         "altgr": [
-            "* * * * * *   * * * * * * * bsp",
-            "tb * * * * #tb * ü * ö * * * *",
-            "cps ä * * * *   * * * * * * ret",
-            "shft * * * * *   * * * * * shft",
-            "~ ~ ~         spc       * ~ ~ ~"
+            "* * * * * *    * * * * * * * bsp",
+            "tb * * * * #tb   * ü * ö * * * *",
+            "cps ä * * * &mgc2 * * * * * * ret",
+            "shft * * * * *     * * * * * shft",
+            "~ ~ &mgc        spc       * ~ ~ ~"
         ]
     },
     "combos": {
@@ -40,6 +40,15 @@
         },
         "shift": {
             "sft-2 ?": "X"
+        }
+    },
+    "magic": {
+        "mgc": {
+            "a": "b",
+            "abc": "defghijklmnopqrstuvwxyz"
+        },
+        "mgc2": {
+            "more": " magic"
         }
     },
     "board": [
