@@ -223,8 +223,10 @@ pub enum Key {
     Special(SpecialKey),
     /// Redirects to a different layer when held.
     Layer {
-        /// Name of the layer.
-        name: String,
+    /// Specifies a magic key.
+    Magic {
+        /// Magic key's label.
+        label: String,
     },
 }
 
@@ -294,10 +296,15 @@ impl Key {
         matches!(self, Key::Transparent)
     }
 
-    /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer) which holds the name.
-    /// of a layer on the layout
+    /// Check if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer), which holds the
+    /// name of a particular layer on the layout
     pub const fn is_layer(&self) -> bool {
-        matches!(self, Key::Layer { name: _ })
+    }
+
+    /// Check if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic) which holds the
+    /// name of a particular magic key on the layout
+    pub const fn is_magic(&self) -> bool {
+        matches!(self, Key::Magic { label: _ })
     }
 
     /// Get the output if the key is of type [`Key::Char`](crate::dofinitions::Key::Char).
@@ -316,10 +323,17 @@ impl Key {
         }
     }
 
-    /// Get the layer name if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
-    pub fn layer_output(&self) -> Option<&str> {
+    /// Get the layer label if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
+    pub fn layer_label(&self) -> Option<&str> {
         match &self {
-            Key::Layer { name } => Some(name),
+            _ => None,
+        }
+    }
+
+    /// Get the magic key label if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic).
+    pub fn magic_label(&self) -> Option<&str> {
+        match &self {
+            Key::Magic { label } => Some(label),
             _ => None,
         }
     }
@@ -354,7 +368,7 @@ impl Display for Key {
                 Backspace => "bsp".into(),
                 Del => "del".into(),
             },
-            Layer { name } => name.clone(),
+            Magic { label } => format!("&{label}"),
         };
 
         write!(f, "{s}")
@@ -407,9 +421,15 @@ where
                 "backspace" | "bksp" | "bcsp" | "bsp" => Special(Backspace),
                 "del" => Special(Del),
                 _ if s.starts_with('@') => Layer {
-                    name: s.chars().skip(1).collect(),
                 },
-                _ if s.starts_with('#') || s.starts_with("\\#") || s.starts_with("\\@") => {
+                _ if s.starts_with('&') => Magic {
+                    label: s.chars().skip(1).collect(),
+                },
+                _ if s.starts_with('#')
+                    || s.starts_with("\\#")
+                    || s.starts_with("\\@")
+                    || s.starts_with("\\&") =>
+                {
                     Word(s.chars().skip(1).collect())
                 }
                 _ => Word(s.into()),

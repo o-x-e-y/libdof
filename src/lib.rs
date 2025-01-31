@@ -6,11 +6,13 @@ pub mod dofinitions;
 pub mod interaction;
 pub mod keyboard;
 mod macros;
+pub mod magic;
 pub mod prelude;
 
 use combos::{Combos, ParseCombos};
 use interaction::{KeyPos, Pos};
 use keyboard::{ParseKeyboard, PhysicalKey, PhysicalKeyboard};
+use magic::Magic;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, DisplayFromStr};
 use thiserror::Error;
@@ -52,6 +54,7 @@ pub struct Dof {
     link: Option<String>,
     layers: BTreeMap<String, Layer>,
     anchor: Anchor,
+    magic: Magic,
     // alt_fingerings: Option<Vec<String>>,
     combos: Combos,
     fingering: Fingering,
@@ -235,6 +238,8 @@ impl TryFrom<DofIntermediate> for Dof {
             //     .collect())
         };
 
+        let magic = inter.magic.unwrap_or_default();
+
         Ok(Self {
             name: inter.name,
             authors: inter.authors,
@@ -246,6 +251,7 @@ impl TryFrom<DofIntermediate> for Dof {
             link: inter.link,
             layers: inter.layers,
             anchor,
+            magic,
             combos,
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
@@ -289,6 +295,11 @@ impl From<Dof> for DofIntermediate {
             _ => None,
         };
 
+        let magic = match dof.magic.is_empty() {
+            false => Some(dof.magic),
+            true => None,
+        };
+
         let combos = dof.combos.into_parse_combos(&dof.layers);
 
         DofIntermediate {
@@ -301,6 +312,7 @@ impl From<Dof> for DofIntermediate {
             link: dof.link,
             layers: dof.layers,
             anchor,
+            magic,
             combos,
             fingering,
         }
@@ -727,7 +739,11 @@ impl<'a> DescriptiveKey<'a> {
 
     /// Get the layer name if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
     pub fn layer_output(&self) -> Option<&str> {
-        self.output.layer_output()
+    }
+
+     /// Get the magic key label if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic).
+    pub fn magic_label(&self) -> Option<&str> {
+        self.output.magic_label()
     }
 }
 
@@ -748,6 +764,7 @@ pub struct DofIntermediate {
     pub link: Option<String>,
     pub layers: BTreeMap<String, Layer>,
     pub anchor: Option<Anchor>,
+    pub magic: Option<Magic>,
     // pub alt_fingerings: Option<Vec<String>>,
     pub combos: Option<ParseCombos>,
     pub fingering: Option<ParsedFingering>,
@@ -846,6 +863,8 @@ impl DofIntermediate {
 mod tests {
     use keyboard::{RelativeKey, RelativeKeyboard};
 
+    use crate::magic::MagicKey;
+
     use super::*;
 
     #[test]
@@ -862,6 +881,7 @@ mod tests {
             layers: BTreeMap::new(),
             fingering: Some(ParsedFingering::Implicit(NamedFingering::Angle)),
             combos: None,
+            magic: None,
         };
 
         let v = Dof::try_from(minimal_test);
@@ -885,6 +905,7 @@ mod tests {
             layers: BTreeMap::new(),
             fingering: None,
             combos: None,
+            magic: None,
         };
 
         let dof_minimal = serde_json::from_str::<DofIntermediate>(minimal_json)
@@ -1004,6 +1025,7 @@ mod tests {
                 ),
             ]),
             combos: Default::default(),
+            magic: Default::default(),
             fingering: {
                 vec![
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
@@ -1143,6 +1165,7 @@ mod tests {
                 ),
             ]),
             combos: Default::default(),
+            magic: Default::default(),
             fingering: {
                 vec![
                     vec![LP, LR, LM, LI, LI, RI, RI, RM, RR, RP],
@@ -1185,6 +1208,7 @@ mod tests {
             layers: BTreeMap::new(),
             fingering: Some(ParsedFingering::Implicit(NamedFingering::Angle)),
             combos: None,
+            magic: None,
         };
 
         let s = serde_json::to_string_pretty(&minimal_test).unwrap();
@@ -1294,7 +1318,9 @@ mod tests {
                         vec![
                             Empty,
                             Empty,
-                            Empty,
+                            Magic {
+                                label: "mgc".into()
+                            },
                             Special(Space),
                             Layer {
                                 name: "altgr".into(),
@@ -1372,7 +1398,9 @@ mod tests {
                         vec![
                             Empty,
                             Empty,
-                            Empty,
+                            Magic {
+                                label: "mgc".into()
+                            },
                             Special(Space),
                             Word("altgr".into()),
                             Empty,
@@ -1422,7 +1450,9 @@ mod tests {
                             Transparent,
                             Transparent,
                             Transparent,
-                            Transparent,
+                            Magic {
+                                label: "mgc2".into()
+                            },
                             Transparent,
                             Transparent,
                             Transparent,
@@ -1448,7 +1478,9 @@ mod tests {
                         vec![
                             Empty,
                             Empty,
-                            Empty,
+                            Magic {
+                                label: "mgc".into()
+                            },
                             Special(Space),
                             Transparent,
                             Empty,
@@ -1553,6 +1585,31 @@ mod tests {
                     BTreeMap::from([(vec![ck(Special(Shift), 1), ck(Char('?'), 0)], Char('X'))]),
                 ),
             ]))),
+            magic: Some(crate::magic::Magic {
+                keys: BTreeMap::from([
+                    (
+                        "mgc".into(),
+                        MagicKey {
+                            label: "mgc".into(),
+                            rules: BTreeMap::from([
+                                ("a".into(), "b".into()),
+                                ("abc".into(), "defghijklmnopqrstuvwxyz".into()),
+                            ]),
+                            max_leading_length: 3,
+                            max_output_length: 23,
+                        },
+                    ),
+                    (
+                        "mgc2".into(),
+                        MagicKey {
+                            label: "mgc2".into(),
+                            rules: BTreeMap::from([("more".into(), " magic".into())]),
+                            max_leading_length: 4,
+                            max_output_length: 6,
+                        },
+                    ),
+                ]),
+            }),
         };
 
         let dof_maximal = serde_json::from_str::<DofIntermediate>(maximal_json)
