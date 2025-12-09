@@ -496,7 +496,7 @@ impl Shape {
 /// (being 3x10 + 3 thumb keys per thumb) and a custom option if any anything but the prior options is provided.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum KeyboardType {
+pub enum FormFactor {
     Ansi,
     Iso,
     Ortho,
@@ -504,7 +504,7 @@ pub enum KeyboardType {
     Custom(String),
 }
 
-impl KeyboardType {
+impl FormFactor {
     /// Get the shape of a certain keyboard type.
     pub fn shape(&self) -> Shape {
         self.fingering(&NamedFingering::Traditional)
@@ -517,7 +517,7 @@ impl KeyboardType {
     /// `KeyboardType::Ortho` and `NamedFingering::Angle`.
     pub fn fingering(&self, named_fingering: &NamedFingering) -> Result<Fingering> {
         use Finger::*;
-        use KeyboardType::*;
+        use FormFactor::*;
         use NamedFingering::*;
 
         let fingering = match (self, &named_fingering) {
@@ -588,7 +588,7 @@ impl KeyboardType {
     /// vast majority of keyboard layouts doesn't remap the number row or special keys on the left) and
     /// (0, 0) for the rest.
     pub const fn anchor(&self) -> Anchor {
-        use KeyboardType::*;
+        use FormFactor::*;
 
         match self {
             Ansi => Anchor::new(1, 1),
@@ -600,9 +600,9 @@ impl KeyboardType {
     }
 }
 
-impl Display for KeyboardType {
+impl Display for FormFactor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use KeyboardType::*;
+        use FormFactor::*;
 
         let s = match self {
             Ansi => "ansi",
@@ -616,11 +616,11 @@ impl Display for KeyboardType {
     }
 }
 
-impl FromStr for KeyboardType {
+impl FromStr for FormFactor {
     type Err = std::convert::Infallible;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        use KeyboardType::*;
+        use FormFactor::*;
 
         match s.to_lowercase().as_str() {
             "ansi" => Ok(Ansi),

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 
 use crate::{
-    keyboard_conv, Anchor, DofError, DofErrorInner as DE, Fingering, Keyboard, KeyboardType,
+    keyboard_conv, Anchor, DofError, DofErrorInner as DE, Fingering, FormFactor, Keyboard,
     NamedFingering, Result,
 };
 
@@ -217,30 +217,30 @@ impl From<Vec<Vec<RelativeKey>>> for RelativeKeyboard {
 
 keyboard_conv!(RelativeKey, RelativeKeyboardRow);
 
-/// Representation of a physical keyboard using a keyboard type and an optional anchor. If these are
+/// Representation of a physical keyboard using a form factor and an optional anchor. If these are
 /// known defaults, it can be converted to a physical keyboard directly.
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NamedKeyboard {
     #[serde_as(as = "DisplayFromStr")]
     #[serde(rename = "type")]
-    pub(crate) board: KeyboardType,
+    pub(crate) form_factor: FormFactor,
     pub(crate) anchor: Option<Anchor>,
 }
 
-impl TryFrom<KeyboardType> for PhysicalKeyboard {
+impl TryFrom<FormFactor> for PhysicalKeyboard {
     type Error = DofError;
 
-    fn try_from(board: KeyboardType) -> Result<Self> {
-        let kb = match board {
-            KeyboardType::Ansi => vec![
+    fn try_from(form_factor: FormFactor) -> Result<Self> {
+        let kb = match form_factor {
+            FormFactor::Ansi => vec![
                 phys_row(&[(1.0, 1), (1.0, 12), (2.0, 1)], 0.0, 0.0),
                 phys_row(&[(1.5, 1), (1.0, 12), (1.5, 1)], 0.0, 1.0),
                 phys_row(&[(1.75, 1), (1.0, 11), (2.25, 1)], 0.0, 2.0),
                 phys_row(&[(2.25, 1), (1.0, 10), (2.75, 1)], 0.0, 3.0),
                 phys_row(&[(1.25, 3), (6.25, 1), (1.25, 4)], 0.0, 4.0),
             ],
-            KeyboardType::Iso => {
+            FormFactor::Iso => {
                 let mut iso = vec![
                     phys_row(&[(1.0, 1), (1.0, 12), (2.0, 1)], 0.0, 0.0),
                     phys_row(&[(1.5, 1), (1.0, 12) /* iso */], 0.0, 1.0),
@@ -254,13 +254,13 @@ impl TryFrom<KeyboardType> for PhysicalKeyboard {
 
                 iso
             }
-            KeyboardType::Ortho => vec![
+            FormFactor::Ortho => vec![
                 phys_row(&[(1.0, 10)], 0.0, 0.0),
                 phys_row(&[(1.0, 10)], 0.0, 1.0),
                 phys_row(&[(1.0, 10)], 0.0, 2.0),
                 phys_row(&[(1.0, 6)], 2.0, 3.0),
             ],
-            KeyboardType::Colstag => vec![
+            FormFactor::Colstag => vec![
                 vec![
                     PhysicalKey::xy(0.0, 0.45),
                     PhysicalKey::xy(1.0, 0.15),
@@ -306,7 +306,7 @@ impl TryFrom<KeyboardType> for PhysicalKeyboard {
                     PhysicalKey::xy(8.6, 3.3),
                 ],
             ],
-            c @ KeyboardType::Custom(_) => return Err(DE::UnknownKeyboardType(c).into()),
+            c @ FormFactor::Custom(_) => return Err(DE::UnknownKeyboardType(c).into()),
         };
 
         Ok(kb.into())
@@ -416,7 +416,7 @@ impl From<PhysicalKeyboard> for ParseKeyboard {
 pub enum ParseKeyboard {
     /// * `Named`: a [`KeyboardType`](crate::KeyboardType) name. If a custom name is provided,
     /// the `Dof` can likely not be parsed.
-    Named(#[serde_as(as = "DisplayFromStr")] KeyboardType),
+    Named(#[serde_as(as = "DisplayFromStr")] FormFactor),
     // NamedAnchor(NamedKeyboard),
     /// * `Relative`: a [`RelativeKeyboard`](crate::keyboard::RelativeKeyboard),
     Relative(RelativeKeyboard),
@@ -610,11 +610,11 @@ mod tests {
         let board = serde_json::from_str::<ParseKeyboard>(board_str)
             .expect("parsing of ParseKeyboard failed");
 
-        assert_eq!(board, ParseKeyboard::Named(KeyboardType::Ansi));
+        assert_eq!(board, ParseKeyboard::Named(FormFactor::Ansi));
 
         let kb = PhysicalKeyboard::try_from(board)
             .expect("error encountered while converting to physical keyboard: ")
-            .resized(KeyboardType::Ansi.anchor(), vec![10, 11, 10].into());
+            .resized(FormFactor::Ansi.anchor(), vec![10, 11, 10].into());
 
         let cmp = &PhysicalKey {
             x: 11.25,

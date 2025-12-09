@@ -80,10 +80,10 @@ impl Dof {
 
     /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout. `Custom::("")`
     /// if a custom physical keyboard was provided.
-    pub fn board_type(&self) -> KeyboardType {
+    pub fn form_factor(&self) -> FormFactor {
         match &self.parsed_board {
             ParseKeyboard::Named(n) => n.clone(),
-            _ => KeyboardType::Custom("".into()),
+            _ => FormFactor::Custom("".into()),
         }
     }
 
@@ -343,8 +343,8 @@ enum DofErrorInner {
 
     #[error("Couldn't parse Finger from '{0}'")]
     FingerParseError(String),
-    #[error("Can't combine keyboard type '{0}' with fingering '{1}'")]
-    UnsupportedKeyboardFingeringCombo(KeyboardType, NamedFingering),
+    #[error("Can't combine form factor '{0}' with fingering '{1}'")]
+    UnsupportedKeyboardFingeringCombo(FormFactor, NamedFingering),
     #[error("Default fingering only exists for known keyboards: ansi, iso, ortho and colstag")]
     FingeringForCustomKeyboard,
 
@@ -354,8 +354,8 @@ enum DofErrorInner {
     EmptyPhysKey,
     #[error("Expected 2, 3 or 4 values in physical key definition, found {0} for '{1}'")]
     ValueAmountError(usize, String),
-    #[error("Keyboard type '{0}' does not match a default physical keyboard.")]
-    UnknownKeyboardType(KeyboardType),
+    #[error("Form factor '{0}' does not match a default physical keyboard.")]
+    UnknownKeyboardType(FormFactor),
 
     #[error("the provided layer name '{0}' is invalid")]
     LayerDoesntExist(String),
@@ -873,7 +873,7 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: ParseKeyboard::Named(KeyboardType::Ansi),
+            board: ParseKeyboard::Named(FormFactor::Ansi),
             year: None,
             description: None,
             languages: Default::default(),
@@ -897,7 +897,7 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: ParseKeyboard::Named(KeyboardType::Ansi),
+            board: ParseKeyboard::Named(FormFactor::Ansi),
             year: None,
             description: None,
             languages: None,
@@ -927,12 +927,12 @@ mod tests {
         let d_manual = Dof {
             name: "Qwerty".into(),
             authors: None,
-            board: PhysicalKeyboard::try_from(ParseKeyboard::Named(KeyboardType::Ansi))
+            board: PhysicalKeyboard::try_from(ParseKeyboard::Named(FormFactor::Ansi))
                 .unwrap()
-                .resized(KeyboardType::Ansi.anchor(), vec![10, 11, 10].into())
+                .resized(FormFactor::Ansi.anchor(), vec![10, 11, 10].into())
                 .unwrap()
                 .into(),
-            parsed_board: ParseKeyboard::Named(KeyboardType::Ansi),
+            parsed_board: ParseKeyboard::Named(FormFactor::Ansi),
             year: None,
             description: None,
             languages: vec![Default::default()],
@@ -1059,17 +1059,17 @@ mod tests {
         let d_manual = Dof {
             name: "Aptmak".into(),
             authors: None,
-            board: PhysicalKeyboard::try_from(ParseKeyboard::Named(KeyboardType::Colstag))
+            board: PhysicalKeyboard::try_from(ParseKeyboard::Named(FormFactor::Colstag))
                 .unwrap()
-                .resized(KeyboardType::Colstag.anchor(), vec![10, 10, 10, 6].into())
+                .resized(FormFactor::Colstag.anchor(), vec![10, 10, 10, 6].into())
                 .unwrap()
                 .into(),
-            parsed_board: ParseKeyboard::Named(KeyboardType::Colstag),
+            parsed_board: ParseKeyboard::Named(FormFactor::Colstag),
             year: None,
             description: None,
             languages: vec![Default::default()],
             link: None,
-            anchor: KeyboardType::Colstag.anchor(),
+            anchor: FormFactor::Colstag.anchor(),
             layers: BTreeMap::from_iter([
                 (
                     "main".into(),
@@ -1200,7 +1200,7 @@ mod tests {
         let minimal_test = DofIntermediate {
             name: "Qwerty".into(),
             authors: None,
-            board: ParseKeyboard::Named(KeyboardType::Ansi),
+            board: ParseKeyboard::Named(FormFactor::Ansi),
             year: None,
             description: None,
             languages: None,
