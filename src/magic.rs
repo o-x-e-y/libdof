@@ -190,7 +190,7 @@ impl From<ParseMagic> for Magic {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn parse_magic() {
         let json = r#"
@@ -204,10 +204,10 @@ mod tests {
                 }
             }
         "#;
-        
-        let magic = serde_json::from_str::<Magic>(json)
-            .expect("Couldn't convert to magic from str");
-        
+
+        let magic =
+            serde_json::from_str::<Magic>(json).expect("Couldn't convert to magic from str");
+
         let reference = Magic {
             keys: BTreeMap::from([
                 (
@@ -231,9 +231,9 @@ mod tests {
                         max_output_length: 6,
                     },
                 ),
-            ]
-        )};
-        
+            ]),
+        };
+
         assert_eq!(magic, reference);
     }
 }

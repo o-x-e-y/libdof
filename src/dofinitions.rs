@@ -204,7 +204,7 @@ pub enum SpecialKey {
 /// * if the length is more than 1, outputs
 ///     - `Key::Char('~')` and `Key::Char('*')` if they contain `\\~` and `\\*` respectively,
 ///     - `Key::Special` based on their names in the readme. You can also check the `FromStr`
-///        implementation itself,
+///       implementation itself,
 ///     - `Key::Layer` if it leads with an `@`.
 ///     - `Key::Word` with its first character removed if it starts with `#`, `\\#` or`\\@`,
 ///     - `Key::Word` otherwise.

@@ -157,7 +157,7 @@ impl Dof {
 
     /// Get a vector of keys with metadata for each key attached. This can be useful if you want
     /// to filter or any other way look at a specific set of keys on the keyboard.
-    pub fn keys(&self) -> Vec<DescriptiveKey> {
+    pub fn keys(&self) -> Vec<DescriptiveKey<'_>> {
         self.layers()
             .iter()
             .flat_map(|(name, layer)| {
@@ -503,7 +503,6 @@ pub trait Keyboard {
                     .map(|v| v.to_vec())
             })
             .collect::<Result<Vec<_>>>()
-            .map(Into::into)
     }
 }
 
@@ -679,7 +678,7 @@ impl<'a> DescriptiveKey<'a> {
 
     /// Check if the key is on any of the provided fingers.
     pub fn is_on_fingers(&self, fingers: &[Finger]) -> bool {
-        fingers.iter().any(|f| self.finger == *f)
+        fingers.contains(&self.finger)
     }
 
     /// Check if the key is on left hand, including left thumb.
@@ -742,7 +741,8 @@ impl<'a> DescriptiveKey<'a> {
         self.output.layer_label()
     }
 
-     /// Get the magic key label if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic).
+    /// Get the magic key label if the key is of type
+    /// [`Key::Magic`](crate::dofinitions::Key::Magic).
     pub fn magic_label(&self) -> Option<&str> {
         self.output.magic_label()
     }
@@ -1320,7 +1320,7 @@ mod tests {
                             Empty,
                             Empty,
                             Magic {
-                                label: "mgc".into()
+                                label: "mgc".into(),
                             },
                             Special(Space),
                             Layer {
@@ -1400,7 +1400,7 @@ mod tests {
                             Empty,
                             Empty,
                             Magic {
-                                label: "mgc".into()
+                                label: "mgc".into(),
                             },
                             Special(Space),
                             Word("altgr".into()),
@@ -1452,7 +1452,7 @@ mod tests {
                             Transparent,
                             Transparent,
                             Magic {
-                                label: "mgc2".into()
+                                label: "mgc2".into(),
                             },
                             Transparent,
                             Transparent,
@@ -1480,7 +1480,7 @@ mod tests {
                             Empty,
                             Empty,
                             Magic {
-                                label: "mgc".into()
+                                label: "mgc".into(),
                             },
                             Special(Space),
                             Transparent,

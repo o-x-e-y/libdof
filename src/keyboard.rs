@@ -163,7 +163,7 @@ pub struct RelativeKey {
 impl std::fmt::Display for RelativeKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.width {
-            w if w == 1.0 => write!(f, "k"),
+            1.0 => write!(f, "k"),
             w if w.fract() == 0.0 => write!(f, "{}k", w as u64),
             w => write!(f, "{w}k"),
         }
@@ -466,7 +466,7 @@ pub(crate) fn phys_row(widths: &[(f64, usize)], x_offset: f64, y_offset: f64) ->
     widths
         .iter()
         .copied()
-        .flat_map(|(width, count)| std::iter::repeat(width).take(count))
+        .flat_map(|(width, count)| std::iter::repeat_n(width, count))
         .map(|w| {
             let pk = PhysicalKey::xyw(x, y_offset, w);
             x += w;
