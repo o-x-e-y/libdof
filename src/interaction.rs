@@ -168,6 +168,7 @@ impl Dof {
             }
 
             let layer = self
+                .0
                 .layers
                 .get_mut(&layer_name1)
                 .ok_or(DE::LayerDoesntExist(layer_name1.clone()))?;
@@ -179,11 +180,13 @@ impl Dof {
             layer.set_key(pos2, key1)?;
         } else {
             let mut layer1 = self
+                .0
                 .layers
                 .remove(&layer_name1)
                 .ok_or(DE::LayerDoesntExist(layer_name1.clone()))?;
 
             let mut layer2 = self
+                .0
                 .layers
                 .remove(&layer_name2)
                 .ok_or(DE::LayerDoesntExist(layer_name2.clone()))?;
@@ -193,8 +196,8 @@ impl Dof {
 
             std::mem::swap(key1, key2);
 
-            self.layers.insert(layer_name1, layer1);
-            self.layers.insert(layer_name2, layer2);
+            self.0.layers.insert(layer_name1, layer1);
+            self.0.layers.insert(layer_name2, layer2);
         }
 
         Ok(())
