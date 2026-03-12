@@ -138,6 +138,16 @@ impl Dof {
         self.0.layers.get(name)
     }
 
+    /// Get the [`Magic`] keys defined on this layout.
+    pub fn magic(&self) -> &Magic {
+        &self.0.magic
+    }
+
+    /// Get the [`Combos`] defined on this layout.
+    pub fn combos(&self) -> &Combos {
+        &self.0.combos
+    }
+
     /// Get a vector of keys with metadata for each key attached. This can be useful if you want
     /// to filter or any other way look at a specific set of keys on the keyboard.
     pub fn keys(&self) -> Vec<DescriptiveKey<'_>> {
