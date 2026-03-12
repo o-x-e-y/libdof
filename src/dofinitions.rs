@@ -572,7 +572,7 @@ impl FormFactor {
                     board.clone(),
                     f.clone(),
                 )
-                .into())
+                .into());
             }
         };
 

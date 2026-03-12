@@ -1,8 +1,8 @@
 //! Contains some structs and functions that are used when interacting with the layout, like swapping two keys.
 
 use crate::{
-    dofinitions::{Finger, Key},
     Dof, DofErrorInner as DE, Layer, Result,
+    dofinitions::{Finger, Key},
 };
 
 /// Represents a (row, column) position on a keyboard. Can be created by `(num, num).into()`.

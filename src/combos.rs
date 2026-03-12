@@ -1,10 +1,10 @@
 //! A way to define combos for a keyboard layout.
 
 use crate::{
-    interaction::Pos, keyboard_conv, DofError, DofErrorInner as DErr, Key, Keyboard, Layer, Result,
+    DofError, DofErrorInner as DErr, Key, Keyboard, Layer, Result, interaction::Pos, keyboard_conv,
 };
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 use std::{collections::BTreeMap, iter, str::FromStr};
 
 /// Represents a combo by way of specifying a `Key`, and if there are multiple on the keyboard,

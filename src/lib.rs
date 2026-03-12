@@ -14,7 +14,7 @@ use interaction::{KeyPos, Pos};
 use keyboard::{ParseKeyboard, PhysicalKey, PhysicalKeyboard};
 use magic::Magic;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, skip_serializing_none, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as, skip_serializing_none};
 use thiserror::Error;
 
 use std::{collections::BTreeMap, num::ParseFloatError};
@@ -1280,10 +1280,10 @@ mod tests {
 
     #[test]
     fn parse_maximal() {
-        use combos::ck;
         use Finger::*;
         use Key::*;
         use SpecialKey::*;
+        use combos::ck;
 
         let maximal_json = include_str!("../example_dofs/maximal.dof");
 
