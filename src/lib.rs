@@ -276,10 +276,7 @@ impl TryFrom<DofIntermediate> for DofInternal {
             .collect::<Vec<_>>()
             .into();
 
-        let authors = match inter.authors {
-            Some(authors) => authors,
-            None => vec![],
-        };
+        let authors = inter.authors.unwrap_or_default();
 
         let languages = match inter.languages {
             Some(l) => l
