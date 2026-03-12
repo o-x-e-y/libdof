@@ -39,49 +39,30 @@ use dofinitions::*;
 /// # Ok(()) }
 /// # fn main() { p(); }
 /// ```
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
-pub struct Dof {
-    name: String,
-    authors: Option<Vec<String>>,
-    board: PhysicalKeyboard,
-    parsed_board: ParseKeyboard,
-    year: Option<u32>,
-    description: Option<String>,
-    languages: Vec<Language>,
-    link: Option<String>,
-    layers: BTreeMap<String, Layer>,
-    anchor: Anchor,
-    magic: Magic,
-    // alt_fingerings: Option<Vec<String>>,
-    combos: Combos,
-    fingering: Fingering,
-    fingering_name: Option<NamedFingering>,
-    has_generated_shift: bool,
-}
+#[serde(from = "DofInternal", into = "DofInternal")]
+pub struct Dof(DofInternal);
 
 impl Dof {
     /// Get the name of the layout.
     pub fn name(&self) -> &str {
-        &self.name
+        &self.0.name
     }
 
     /// Get an optional slice of authors of the layout.
     pub fn authors(&self) -> Option<&[String]> {
-        self.authors.as_deref()
+        self.0.authors.as_deref()
     }
 
     /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout.
     pub const fn board(&self) -> &PhysicalKeyboard {
-        &self.board
+        &self.0.board
     }
 
     /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout. `Custom::("")`
     /// if a custom physical keyboard was provided.
     pub fn form_factor(&self) -> FormFactor {
-        match &self.parsed_board {
+        match &self.0.parsed_board {
             ParseKeyboard::Named(n) => n.clone(),
             _ => FormFactor::Custom("".into()),
         }
@@ -89,33 +70,33 @@ impl Dof {
 
     /// Get the optional publication year of the layout.
     pub const fn year(&self) -> Option<u32> {
-        self.year
+        self.0.year
     }
 
     /// Get the optional description of the layout.
     pub fn description(&self) -> Option<&str> {
-        self.description.as_deref()
+        self.0.description.as_deref()
     }
 
     /// Get the optional link of the layout.
     pub fn link(&self) -> Option<&str> {
-        self.link.as_deref()
+        self.0.link.as_deref()
     }
 
     /// Get a slice of [Language](crate::Language) this layout was intended to be used for.
     pub fn languages(&self) -> &[Language] {
-        &self.languages
+        &self.0.languages
     }
 
     /// Get a map containing the layer names and its corresponding layer on the layout.
     pub fn layers(&self) -> &BTreeMap<String, Layer> {
-        &self.layers
+        &self.0.layers
     }
 
     /// Get the layout anchor, which specifies the coordinate of the top left corner of the layout compared to
     /// the physical keyboard it's on.
     pub const fn anchor(&self) -> Anchor {
-        self.anchor
+        self.0.anchor
     }
 
     /// Get the shape of the fingering and layers of the dof
@@ -126,18 +107,19 @@ impl Dof {
     /// Get the fingering of the keyboard, which specifies for each coordinate which finger is supposed to press
     /// what key.
     pub const fn fingering(&self) -> &Fingering {
-        &self.fingering
+        &self.0.fingering
     }
 
     /// If present, get a specified type of fingering that the layout uses.
     pub fn fingering_name(&self) -> Option<&NamedFingering> {
-        self.fingering_name.as_ref()
+        self.0.fingering_name.as_ref()
     }
 
     /// Get the main layer of the layout. Contains a call to `expect()` but since creating a
     /// `Dof` without a main layer is impossible, it should never fail.
     pub fn main_layer(&self) -> &Layer {
-        self.layers
+        self.0
+            .layers
             .get("main")
             .expect("Creating a Dof without a main layer should be impossible")
     }
@@ -145,14 +127,15 @@ impl Dof {
     /// Get the shift layer of the layout. Contains a call to `expect()` but since creating a
     /// `Dof` without a main layer is impossible, it should never fail.
     pub fn shift_layer(&self) -> &Layer {
-        self.layers
+        self.0
+            .layers
             .get("shift")
             .expect("Creating a Dof without a shift layer should be impossible")
     }
 
     /// Get a specific layer on the keyboard, if it exists.
     pub fn layer(&self, name: &str) -> Option<&Layer> {
-        self.layers.get(name)
+        self.0.layers.get(name)
     }
 
     /// Get a vector of keys with metadata for each key attached. This can be useful if you want
@@ -164,8 +147,8 @@ impl Dof {
                 layer
                     .rows()
                     .enumerate()
-                    .zip(self.fingering.rows())
-                    .zip(self.board.rows())
+                    .zip(self.0.fingering.rows())
+                    .zip(self.0.board.rows())
                     .flat_map(move |(((row, key_row), finger_row), phys_row)| {
                         key_row
                             .iter()
@@ -179,9 +162,70 @@ impl Dof {
             })
             .collect()
     }
+
+    /// Returns a [`DofInner`] which has public fields. This is useful for converting to/from your
+    /// own layout data types.
+    pub fn into_inner(self) -> DofInternal {
+        self.0
+    }
 }
 
-impl TryFrom<DofIntermediate> for Dof {
+impl From<DofInternal> for Dof {
+    fn from(inner: DofInternal) -> Self {
+        Dof(inner)
+    }
+}
+
+impl From<Dof> for DofInternal {
+    fn from(dof: Dof) -> Self {
+        dof.0
+    }
+}
+
+/// Internal struct that represents a dof. Fields on this are public which makes at easier to be
+/// able to convert [`Dof`]s to your own data types.
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
+pub struct DofInternal {
+    /// The name of the layout.
+    pub name: String,
+    /// An optional list of authors of the layout.
+    pub authors: Option<Vec<String>>,
+    /// The list of physical key positions this layout is meant to be used on.
+    pub board: PhysicalKeyboard,
+    /// The physical keyboard as it was parsed from the [`Dof`] json. This is used internally to be
+    /// able to serialize back into the original json.
+    pub parsed_board: ParseKeyboard,
+    /// The optional publication year of the layout.
+    pub year: Option<u32>,
+    /// Get the optional description of the layout.
+    pub description: Option<String>,
+    /// A list of [`Language`](crate::Language) this layout was intended to be used for.
+    pub languages: Vec<Language>,
+    /// The optional link of the layout.
+    pub link: Option<String>,
+    /// A map containing the layer names and its corresponding layer on the layout.
+    pub layers: BTreeMap<String, Layer>,
+    /// The [`Anchor`]ing point of the layout in the keyboard. This specifies the coordinate of the
+    /// top left corner of the layout relative to the physical keyboard it's on.
+    pub anchor: Anchor,
+    /// The [`Magic`] key definition of the layout.
+    pub magic: Magic,
+    /// The [`Combos`] on this layout.
+    pub combos: Combos,
+    /// The fingering of the keyboard, which specifies for each coordinate which finger is supposed
+    /// to press what key.
+    pub fingering: Fingering,
+    /// An optional specified type of [`NamedFingering`] that the layout uses.
+    pub fingering_name: Option<NamedFingering>,
+    /// Whether or not this layout has a shift layer that was generated which is used for
+    /// (de)serialization internally.
+    pub has_generated_shift: bool,
+}
+
+impl TryFrom<DofIntermediate> for DofInternal {
     type Error = DofError;
 
     fn try_from(mut inter: DofIntermediate) -> std::result::Result<Self, Self::Error> {
@@ -240,7 +284,7 @@ impl TryFrom<DofIntermediate> for Dof {
 
         let magic = inter.magic.unwrap_or_default();
 
-        Ok(Self {
+        Ok(DofInternal {
             name: inter.name,
             authors: inter.authors,
             board,
@@ -260,8 +304,8 @@ impl TryFrom<DofIntermediate> for Dof {
     }
 }
 
-impl From<Dof> for DofIntermediate {
-    fn from(mut dof: Dof) -> DofIntermediate {
+impl From<DofInternal> for DofIntermediate {
+    fn from(mut dof: DofInternal) -> DofIntermediate {
         if dof.has_generated_shift {
             dof.layers.remove("shift");
         }
@@ -885,7 +929,7 @@ mod tests {
             magic: None,
         };
 
-        let v = Dof::try_from(minimal_test);
+        let v = DofInternal::try_from(minimal_test);
 
         assert_eq!(v, Err(DofError::from(DErr::NoMainLayer)));
     }
@@ -924,7 +968,7 @@ mod tests {
 
         let d = serde_json::from_str::<Dof>(minimal_json).expect("Couldn't serialize as Dof");
 
-        let d_manual = Dof {
+        let d_manual = DofInternal {
             name: "Qwerty".into(),
             authors: None,
             board: PhysicalKeyboard::try_from(ParseKeyboard::Named(FormFactor::Ansi))
@@ -1039,7 +1083,7 @@ mod tests {
             has_generated_shift: true,
         };
 
-        assert_eq!(d, d_manual);
+        assert_eq!(d, Dof(d_manual));
 
         let reconvert_json =
             serde_json::to_string_pretty(&d).expect("Couldn't reconvert to json value");
@@ -1056,7 +1100,7 @@ mod tests {
 
         let d = serde_json::from_str::<Dof>(aptmak_json).expect("Couldn't serialize as Dof");
 
-        let d_manual = Dof {
+        let d_manual = DofInternal {
             name: "Aptmak".into(),
             authors: None,
             board: PhysicalKeyboard::try_from(ParseKeyboard::Named(FormFactor::Colstag))
@@ -1180,7 +1224,7 @@ mod tests {
             has_generated_shift: true,
         };
 
-        assert_eq!(d, d_manual);
+        assert_eq!(d, Dof(d_manual));
 
         let reconvert_json =
             serde_json::to_string_pretty(&d).expect("Couldn't reconvert to json value");
@@ -1192,7 +1236,7 @@ mod tests {
     fn maximal_succesful() {
         let maximal_json = include_str!("../example_dofs/maximal.dof");
 
-        serde_json::from_str::<Dof>(maximal_json).expect("Couldn't parse or validate Dof");
+        serde_json::from_str::<DofInternal>(maximal_json).expect("Couldn't parse or validate Dof");
     }
 
     #[test]
@@ -1223,8 +1267,8 @@ mod tests {
 
         let buggy = serde_json::from_str::<Dof>(buggy_json).expect("couldn't parse buggy json");
 
-        assert_eq!(buggy.layers.len(), 4);
-        assert_eq!(buggy.anchor, Anchor(0, 0));
+        assert_eq!(buggy.layers().len(), 4);
+        assert_eq!(buggy.anchor(), Anchor(0, 0));
     }
 
     fn rk(width: f64) -> RelativeKey {
