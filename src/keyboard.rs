@@ -3,11 +3,11 @@
 use std::{cmp::Ordering, str::FromStr};
 
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 
 use crate::{
-    keyboard_conv, Anchor, DofError, DofErrorInner as DE, Fingering, FormFactor, Keyboard,
-    NamedFingering, Result,
+    Anchor, DofError, DofErrorInner as DE, Fingering, FormFactor, Keyboard, NamedFingering, Result,
+    keyboard_conv,
 };
 
 /// Representation of a physical key on a keyboard, where `(x, y)` are the top left and the width and

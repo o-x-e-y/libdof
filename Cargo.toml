@@ -1,7 +1,7 @@
 [package]
 name = "libdof"
-version = "0.22.0"
-edition = "2021"
+version = "0.23.0"
+edition = "2024"
 authors = ["Oxey", "Asya"]
 description = ".dof file protocol, a keyboard layout format specification"
 license = "Apache-2.0"
