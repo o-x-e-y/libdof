@@ -21,43 +21,6 @@ use std::{collections::BTreeMap, num::ParseFloatError};
 
 use dofinitions::*;
 
-/// Internal
-#[derive(Clone, Debug, PartialEq)]
-pub struct DofInternal {
-    /// Get the name of the layout.
-    pub name: String,
-    /// Get an optional slice of authors of the layout.
-    pub authors: Option<Vec<String>>,
-    /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout.
-    /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout. `Custom::("")`
-    /// if a custom physical keyboard was provided.
-    pub board: PhysicalKeyboard,
-    pub parsed_board: ParseKeyboard,
-    /// Get the optional publication year of the layout.
-    pub year: Option<u32>,
-    /// Get the optional description of the layout.
-    pub description: Option<String>,
-    /// Get a slice of [Language](crate::Language) this layout was intended to be used for.
-    pub languages: Vec<Language>,
-    /// Get the optional link of the layout.
-    pub link: Option<String>,
-    /// Get a map containing the layer names and its corresponding layer on the layout.
-    /// Get the layout anchor, which specifies the coordinate of the top left corner of the layout compared to
-    /// the physical keyboard it's on.
-    pub layers: BTreeMap<String, Layer>,
-    /// The [`Anchor`]ing point of the layout in the keyboard 
-    pub anchor: Anchor,
-    pub magic: Magic,
-    // pub alt_fingerings: Option<Vec<String>>,
-    pub combos: Combos,
-    /// Get the fingering of the keyboard, which specifies for each coordinate which finger is
-    /// supposed to press what key.
-    pub fingering: Fingering,
-    /// If present, get a specified type of fingering that the layout uses.
-    pub fingering_name: Option<NamedFingering>,
-    pub has_generated_shift: bool,
-}
-
 /// A struct to represent the dof keyboard layout spec. This struct is useful for interacting with dofs
 /// and parsing to/from .dof using [`serde_json`](https://crates.io/crates/serde_json). For converting
 /// other formats into dofs, consider taking a look at [`DofIntermediate`](crate::DofIntermediate).
@@ -76,18 +39,11 @@ pub struct DofInternal {
 /// # Ok(()) }
 /// # fn main() { p(); }
 /// ```
-#[serde_as]
-#[skip_serializing_none]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
+#[serde(from = "DofInternal", into = "DofInternal")]
 pub struct Dof(DofInternal);
 
 impl Dof {
-    /// Get the internal structure of the Dof, useful for custom conversions.
-    pub fn to_inner(self) -> DofInternal {
-        self.0
-    }
-    
     /// Get the name of the layout.
     pub fn name(&self) -> &str {
         &self.0.name
@@ -162,7 +118,8 @@ impl Dof {
     /// Get the main layer of the layout. Contains a call to `expect()` but since creating a
     /// `Dof` without a main layer is impossible, it should never fail.
     pub fn main_layer(&self) -> &Layer {
-        self.0.layers
+        self.0
+            .layers
             .get("main")
             .expect("Creating a Dof without a main layer should be impossible")
     }
@@ -170,7 +127,8 @@ impl Dof {
     /// Get the shift layer of the layout. Contains a call to `expect()` but since creating a
     /// `Dof` without a main layer is impossible, it should never fail.
     pub fn shift_layer(&self) -> &Layer {
-        self.0.layers
+        self.0
+            .layers
             .get("shift")
             .expect("Creating a Dof without a shift layer should be impossible")
     }
@@ -204,9 +162,70 @@ impl Dof {
             })
             .collect()
     }
+
+    /// Returns a [`DofInner`] which has public fields. This is useful for converting to/from your
+    /// own layout data types.
+    pub fn into_inner(self) -> DofInternal {
+        self.0
+    }
 }
 
-impl TryFrom<DofIntermediate> for Dof {
+impl From<DofInternal> for Dof {
+    fn from(inner: DofInternal) -> Self {
+        Dof(inner)
+    }
+}
+
+impl From<Dof> for DofInternal {
+    fn from(dof: Dof) -> Self {
+        dof.0
+    }
+}
+
+/// Internal struct that represents a dof. Fields on this are public which makes at easier to be
+/// able to convert [`Dof`]s to your own data types.
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "DofIntermediate", into = "DofIntermediate")]
+pub struct DofInternal {
+    /// The name of the layout.
+    pub name: String,
+    /// An optional list of authors of the layout.
+    pub authors: Option<Vec<String>>,
+    /// The list of physical key positions this layout is meant to be used on.
+    pub board: PhysicalKeyboard,
+    /// The physical keyboard as it was parsed from the [`Dof`] json. This is used internally to be
+    /// able to serialize back into the original json.
+    pub parsed_board: ParseKeyboard,
+    /// The optional publication year of the layout.
+    pub year: Option<u32>,
+    /// Get the optional description of the layout.
+    pub description: Option<String>,
+    /// A list of [`Language`](crate::Language) this layout was intended to be used for.
+    pub languages: Vec<Language>,
+    /// The optional link of the layout.
+    pub link: Option<String>,
+    /// A map containing the layer names and its corresponding layer on the layout.
+    pub layers: BTreeMap<String, Layer>,
+    /// The [`Anchor`]ing point of the layout in the keyboard. This specifies the coordinate of the
+    /// top left corner of the layout relative to the physical keyboard it's on.
+    pub anchor: Anchor,
+    /// The [`Magic`] key definition of the layout.
+    pub magic: Magic,
+    /// The [`Combos`] on this layout.
+    pub combos: Combos,
+    /// The fingering of the keyboard, which specifies for each coordinate which finger is supposed
+    /// to press what key.
+    pub fingering: Fingering,
+    /// An optional specified type of [`NamedFingering`] that the layout uses.
+    pub fingering_name: Option<NamedFingering>,
+    /// Whether or not this layout has a shift layer that was generated which is used for
+    /// (de)serialization internally.
+    pub has_generated_shift: bool,
+}
+
+impl TryFrom<DofIntermediate> for DofInternal {
     type Error = DofError;
 
     fn try_from(mut inter: DofIntermediate) -> std::result::Result<Self, Self::Error> {
@@ -264,8 +283,8 @@ impl TryFrom<DofIntermediate> for Dof {
         };
 
         let magic = inter.magic.unwrap_or_default();
-        
-        let internal = DofInternal {
+
+        Ok(DofInternal {
             name: inter.name,
             authors: inter.authors,
             board,
@@ -281,16 +300,12 @@ impl TryFrom<DofIntermediate> for Dof {
             fingering: explicit_fingering,
             fingering_name: implicit_fingering,
             has_generated_shift,
-        };
-
-        Ok(Dof(internal))
+        })
     }
 }
 
-impl From<Dof> for DofIntermediate {
-    fn from(dof: Dof) -> DofIntermediate {
-        let mut dof = dof.to_inner();
-        
+impl From<DofInternal> for DofIntermediate {
+    fn from(mut dof: DofInternal) -> DofIntermediate {
         if dof.has_generated_shift {
             dof.layers.remove("shift");
         }
@@ -345,12 +360,6 @@ impl From<Dof> for DofIntermediate {
             combos,
             fingering,
         }
-    }
-}
-
-impl From<DofInternal> for Dof {
-    fn from(internal: DofInternal) -> Self {
-        Dof(internal)
     }
 }
 
@@ -920,7 +929,7 @@ mod tests {
             magic: None,
         };
 
-        let v = Dof::try_from(minimal_test);
+        let v = DofInternal::try_from(minimal_test);
 
         assert_eq!(v, Err(DofError::from(DErr::NoMainLayer)));
     }
@@ -1227,7 +1236,7 @@ mod tests {
     fn maximal_succesful() {
         let maximal_json = include_str!("../example_dofs/maximal.dof");
 
-        serde_json::from_str::<Dof>(maximal_json).expect("Couldn't parse or validate Dof");
+        serde_json::from_str::<DofInternal>(maximal_json).expect("Couldn't parse or validate Dof");
     }
 
     #[test]
