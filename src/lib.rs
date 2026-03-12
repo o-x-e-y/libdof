@@ -50,8 +50,8 @@ impl Dof {
     }
 
     /// Get an optional slice of authors of the layout.
-    pub fn authors(&self) -> Option<&[String]> {
-        self.0.authors.as_deref()
+    pub fn authors(&self) -> &[String] {
+        &self.0.authors
     }
 
     /// Get the [`KeyboardType`](crate::dofinitions::KeyboardType) of the layout.
@@ -138,6 +138,16 @@ impl Dof {
         self.0.layers.get(name)
     }
 
+    /// Get the [`Magic`] keys defined on this layout.
+    pub fn magic(&self) -> &Magic {
+        &self.0.magic
+    }
+
+    /// Get the [`Combos`] defined on this layout.
+    pub fn combos(&self) -> &Combos {
+        &self.0.combos
+    }
+
     /// Get a vector of keys with metadata for each key attached. This can be useful if you want
     /// to filter or any other way look at a specific set of keys on the keyboard.
     pub fn keys(&self) -> Vec<DescriptiveKey<'_>> {
@@ -192,7 +202,7 @@ pub struct DofInternal {
     /// The name of the layout.
     pub name: String,
     /// An optional list of authors of the layout.
-    pub authors: Option<Vec<String>>,
+    pub authors: Vec<String>,
     /// The list of physical key positions this layout is meant to be used on.
     pub board: PhysicalKeyboard,
     /// The physical keyboard as it was parsed from the [`Dof`] json. This is used internally to be
@@ -266,6 +276,8 @@ impl TryFrom<DofIntermediate> for DofInternal {
             .collect::<Vec<_>>()
             .into();
 
+        let authors = inter.authors.unwrap_or_default();
+
         let languages = match inter.languages {
             Some(l) => l
                 .into_iter()
@@ -286,7 +298,7 @@ impl TryFrom<DofIntermediate> for DofInternal {
 
         Ok(DofInternal {
             name: inter.name,
-            authors: inter.authors,
+            authors,
             board,
             parsed_board: inter.board,
             year: inter.year,
@@ -321,6 +333,11 @@ impl From<DofInternal> for DofIntermediate {
             Some(fingering)
         };
 
+        let authors = match dof.authors.len() {
+            0 => None,
+            _ => Some(dof.authors),
+        };
+
         let languages = match dof.languages.as_slice() {
             [lang] if lang == &Language::default() => None,
             _ => Some(
@@ -348,7 +365,7 @@ impl From<DofInternal> for DofIntermediate {
 
         DofIntermediate {
             name: dof.name,
-            authors: dof.authors,
+            authors,
             board: dof.parsed_board,
             year: dof.year,
             description: dof.description,
@@ -970,7 +987,7 @@ mod tests {
 
         let d_manual = DofInternal {
             name: "Qwerty".into(),
-            authors: None,
+            authors: Vec::new(),
             board: PhysicalKeyboard::try_from(ParseKeyboard::Named(FormFactor::Ansi))
                 .unwrap()
                 .resized(FormFactor::Ansi.anchor(), vec![10, 11, 10].into())
@@ -1102,7 +1119,7 @@ mod tests {
 
         let d_manual = DofInternal {
             name: "Aptmak".into(),
-            authors: None,
+            authors: Vec::new(),
             board: PhysicalKeyboard::try_from(ParseKeyboard::Named(FormFactor::Colstag))
                 .unwrap()
                 .resized(FormFactor::Colstag.anchor(), vec![10, 10, 10, 6].into())
