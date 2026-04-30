@@ -1,3 +1,7 @@
+[workspace]
+members = [".", "crates/libdof-wasm"]
+resolver = "2"
+
 [package]
 name = "libdof"
 version = "0.24.0"
