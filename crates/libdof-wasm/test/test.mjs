@@ -38,7 +38,8 @@ test("parses minimal_valid.dof", () => {
   const obj = JSON.parse(result);
   assert(typeof obj.name === "string", "name should be a string");
   assert(obj.fingering !== undefined, "fingering should be present");
-  assert(obj.layers !== undefined, "layers should be present");
+    assert(obj.layers !== undefined, "layers should be present");
+    console.log(result, "\n", obj)
 });
 
 test("parses maximal.dof", () => {
