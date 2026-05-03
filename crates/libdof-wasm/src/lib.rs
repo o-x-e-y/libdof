@@ -1,18 +1,18 @@
 mod combos;
+mod keyboard;
 mod layer;
 mod magic;
-mod keyboard;
 
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
-use libdof::prelude as libdof;
 use libdof::Keyboard as _;
+use libdof::prelude as libdof;
 use wasm_bindgen::prelude::*;
 
-use layer::*;
-use keyboard::*;
 use combos::*;
+use keyboard::*;
+use layer::*;
 
 #[wasm_bindgen]
 pub struct Dof(libdof::Dof);
@@ -77,7 +77,7 @@ impl Dof {
     /// Returns the languages as `Language[]`.
     pub fn languages(&self) -> JsValue {
         let langs = self.0.languages().to_vec();
-        
+
         serde_wasm_bindgen::to_value(&langs).unwrap()
     }
 
@@ -102,7 +102,7 @@ impl Dof {
     pub fn layers(&self) -> JsValue {
         serde_wasm_bindgen::to_value(self.0.layers()).unwrap()
     }
-    
+
     /// Returns the physical keyboard layout as a `PhysicalKey[][]`.
     pub fn board(&self) -> JsValue {
         let rows = self
@@ -112,7 +112,7 @@ impl Dof {
             .cloned()
             .map(|row| row.into_iter().map(PhysicalKey::from).collect::<Vec<_>>())
             .collect::<Vec<_>>();
-        
+
         serde_wasm_bindgen::to_value(&rows).unwrap()
     }
 
@@ -124,7 +124,7 @@ impl Dof {
             .rows()
             .map(|row| row.iter().map(|f| Finger::from(*f)).collect::<Vec<_>>())
             .collect::<Vec<_>>();
-        
+
         serde_wasm_bindgen::to_value(&rows).unwrap()
     }
 
@@ -136,7 +136,7 @@ impl Dof {
     /// Returns the combos as a `Record<string, ComboEntry[]>`.
     pub fn combos(&self) -> JsValue {
         let combos = self.0.combos();
-        
+
         let map = combos
             .0
             .iter()
@@ -151,30 +151,25 @@ impl Dof {
                 (layer.clone(), wasm_entries)
             })
             .collect::<BTreeMap<_, _>>();
-        
+
         serde_wasm_bindgen::to_value(&map).unwrap()
     }
 
     /// Returns all keys with metadata as an array of `DescriptiveKey` class instances.
     pub fn keys(&self) -> Vec<DescriptiveKey> {
-        self.0.keys()
+        self.0
+            .keys()
             .into_iter()
             .map(DescriptiveKey::from)
             .collect()
-        
     }
 
     /// Finds all positions of a given key string (e.g. `"a"`, `"spc"`, `"@sym"`).
     /// Returns a `KeyPos[]`.
     pub fn get(&self, key: &str) -> Vec<KeyPos> {
         let key = libdof::Key::from_str(key).unwrap();
-        
-        self
-            .0
-            .get(key)
-            .into_iter()
-            .map(KeyPos::from)
-            .collect()
+
+        self.0.get(key).into_iter().map(KeyPos::from).collect()
     }
 
     /// Returns all keys at position `(row, col)` across all layers as a `Key[]`.
@@ -186,7 +181,7 @@ impl Dof {
             .cloned()
             .map(Key::from)
             .collect();
-        
+
         serde_wasm_bindgen::to_value(&keys).unwrap()
     }
 
@@ -233,8 +228,7 @@ impl DofIntermediate {
     /// Equivalent to `serde_json::from_str::<Dof>(input)` in Rust. Throws on invalid input.
     #[wasm_bindgen(constructor)]
     pub fn new(input: &str) -> Result<DofIntermediate, JsError> {
-        let dof = serde_json::from_str(input)
-            .map_err(|e| JsError::new(&e.to_string()))?;
+        let dof = serde_json::from_str(input).map_err(|e| JsError::new(&e.to_string()))?;
 
         Ok(DofIntermediate(dof))
     }

@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
-use libdof::prelude as libdof;
 use libdof::Keyboard as _;
+use libdof::prelude as libdof;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
 
 use crate::combos::*;
 use crate::keyboard::*;
@@ -21,7 +21,7 @@ impl Key {
     pub fn new(key: &str) -> Self {
         libdof::Key::from_str(key).unwrap().into()
     }
- 
+
     /// Check if the key is of type [`Key::Char`](crate::dofinitions::Key::Char) which outputs
     /// a single character.
     pub fn is_char(&self) -> bool {
@@ -65,24 +65,30 @@ impl Key {
 
     /// Get the output if the key is of type [`Key::Word`](crate::dofinitions::Key::Word).
     pub fn word_output(&self) -> Option<String> {
-        libdof::Key::from(self.clone()).word_output().map(ToString::to_string)
+        libdof::Key::from(self.clone())
+            .word_output()
+            .map(ToString::to_string)
     }
 
     /// Get the layer label if the key is of type [`Key::Layer`](crate::dofinitions::Key::Layer).
     pub fn layer_label(&self) -> Option<String> {
-        libdof::Key::from(self.clone()).layer_label().map(ToString::to_string)
+        libdof::Key::from(self.clone())
+            .layer_label()
+            .map(ToString::to_string)
     }
 
     /// Get the magic key label if the key is of type [`Key::Magic`](crate::dofinitions::Key::Magic).
     pub fn magic_label(&self) -> Option<String> {
-        libdof::Key::from(self.clone()).magic_label().map(ToString::to_string)
+        libdof::Key::from(self.clone())
+            .magic_label()
+            .map(ToString::to_string)
     }
 }
 
 impl From<libdof::Key> for Key {
     fn from(key: libdof::Key) -> Self {
         use libdof::Key::*;
-        
+
         let kind_s = match key {
             Empty => "Empty",
             Transparent => "Transparent",
@@ -92,7 +98,7 @@ impl From<libdof::Key> for Key {
             Layer { .. } => "Layer",
             Magic { .. } => "Magic",
         };
-        
+
         let kind = kind_s.to_string();
         let value = key.to_string();
 
@@ -251,7 +257,7 @@ impl From<libdof::DescriptiveKey<'_>> for DescriptiveKey {
         let pos = key.pos().into();
         let finger = key.finger().into();
         let phys = key.physical_pos().clone().into();
-        
+
         Self {
             output,
             layer,

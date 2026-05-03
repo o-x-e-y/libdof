@@ -12,7 +12,7 @@ const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 
 Object.assign(pkg, {
   name: "libdof",
-  description: ".dof keyboard layout format parser — Rust/WebAssembly",
+  description: ".dof keyboard layout format parser written in Rust, compiled to WASM",
   license: "Apache-2.0",
   repository: {
     type: "git",

@@ -1,8 +1,7 @@
-use libdof::prelude as dof;
 use libdof::dofinitions;
-use libdof::Keyboard as _;
+use libdof::prelude as dof;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[wasm_bindgen]

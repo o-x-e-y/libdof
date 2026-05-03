@@ -1,10 +1,8 @@
 use std::collections::BTreeMap;
 
-use libdof::prelude as dof;
-use libdof::Keyboard as _;
-use libdof::magic as magic;
+use libdof::magic;
+use serde::Serialize;
 use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
 
 // #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize, Tsify)]
 // #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -33,9 +31,7 @@ impl Magic {
 
     /// Returns a `MagicKey` for the given label, or `undefined`.
     pub fn key(&self, label: &str) -> Option<MagicKey> {
-        self.0
-            .key(label)
-            .map(|k| MagicKey(k.clone()))
+        self.0.key(label).map(|k| MagicKey(k.clone()))
     }
 
     pub fn len(&self) -> usize {
@@ -68,7 +64,7 @@ impl Magic {
                 )
             })
             .collect::<BTreeMap<_, _>>();
-    
+
         serde_wasm_bindgen::to_value(&map).unwrap()
     }
 }

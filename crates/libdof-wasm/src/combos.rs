@@ -1,8 +1,6 @@
 use libdof::prelude as dof;
-use libdof::dofinitions;
-use libdof::Keyboard as _;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
 
 /// Represents a (row, column) position on a keyboard. Can be created by `(num, num).into()`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -19,13 +17,13 @@ impl Pos {
     pub fn new(row: usize, col: usize) -> Self {
         Self { row, col }
     }
+}
 
-    /// Get the pos's row.
+impl Pos {
     pub fn row(&self) -> usize {
         self.row
     }
 
-    /// Get the pos's column.
     pub fn col(&self) -> usize {
         self.col
     }
@@ -46,19 +44,24 @@ impl From<dof::Pos> for Pos {
 #[wasm_bindgen]
 pub struct KeyPos {
     /// Name of the layer the keypos refers to
-    pub layer: String,
+    layer: String,
     /// Row, col position of the key on the keyboard.
-    pub pos: Pos,
+    pos: Pos,
 }
 
 #[wasm_bindgen]
 impl KeyPos {
     #[wasm_bindgen(constructor)]
     pub fn new(layer: String, pos: Pos) -> Self {
-        Self {
-            layer,
-            pos,
-        }
+        Self { layer, pos }
+    }
+
+    pub fn layer(&self) -> String {
+        self.layer.clone()
+    }
+
+    pub fn pos(&self) -> Pos {
+        self.pos.clone()
     }
 }
 
