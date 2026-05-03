@@ -1,3 +1,5 @@
 /target
 /Cargo.lock
 .direnv
+crates/libdof-wasm/pkg/
+crates/libdof-wasm/pkg-node/

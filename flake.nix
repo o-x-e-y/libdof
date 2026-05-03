@@ -21,6 +21,8 @@
           buildInputs = [
             rust
             pkg-config
+            wasm-pack
+            bun
           ];
         };
       }
