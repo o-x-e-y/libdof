@@ -1,6 +1,6 @@
 [package]
 name = "libdof-wasm"
-version = "0.24.0"
+version = "0.24.1"
 edition = "2024"
 authors = ["Oxey", "Asya"]
 description = ".dof keyboard layout format parser — WebAssembly/npm build of libdof"
