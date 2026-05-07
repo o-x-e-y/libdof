@@ -19,16 +19,6 @@ impl Pos {
     }
 }
 
-impl Pos {
-    pub fn row(&self) -> usize {
-        self.row
-    }
-
-    pub fn col(&self) -> usize {
-        self.col
-    }
-}
-
 impl From<dof::Pos> for Pos {
     fn from(pos: dof::Pos) -> Self {
         Self {

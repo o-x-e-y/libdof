@@ -145,12 +145,12 @@ impl DescriptiveKey {
 
     /// Get the key's row.
     pub fn row(&self) -> usize {
-        self.pos.row()
+        self.pos.row
     }
 
     /// Get the key's column.
     pub fn col(&self) -> usize {
-        self.pos.col()
+        self.pos.col
     }
 
     /// Get the finger the key is supposed to be pressed with.
@@ -306,10 +306,10 @@ impl Layer {
     }
 
     /// Returns the key at `(row, col)` as a `Key`, or `undefined` if out of bounds.
-    pub fn get_key(&self, row: usize, col: usize) -> JsValue {
+    pub fn get_key(&self, row: usize, col: usize) -> Option<Key> {
         match self.0.get_key(libdof::Pos::new(row, col)) {
-            Ok(key) => serde_wasm_bindgen::to_value(&Key::from(key.clone())).unwrap(),
-            Err(_) => JsValue::undefined(),
+            Ok(key) => Some(Key::from(key.clone())),
+            Err(_) => None,
         }
     }
 

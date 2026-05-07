@@ -116,16 +116,14 @@ test("fingering_name() returns a string for named fingering", () => {
 test("anchor() returns a two-element array", () => {
   const dof = new Dof(minimalValid);
   const anchor = dof.anchor();
-  assert(Array.isArray(anchor), "anchor() should be an array");
-  assert(anchor.length === 2, "anchor() should have 2 elements");
-  assert(typeof anchor[0] === "number", "anchor x should be a number");
-  assert(typeof anchor[1] === "number", "anchor y should be a number");
+  assert(typeof anchor.x === "number", "anchor x should be a number");
+  assert(typeof anchor.y === "number", "anchor y should be a number");
 });
 
 test("shape() returns row lengths", () => {
   const dof = new Dof(minimalValid);
   const shape = dof.shape();
-  assert(Array.isArray(shape), "shape() should be an array");
+  assert(ArrayBuffer.isView(shape), "shape() should be an immutable UInt32Array");
   assert(shape.length > 0, "shape() should not be empty");
   assert(shape.every((n) => typeof n === "number" && n > 0), "each entry should be a positive number");
 });
@@ -296,7 +294,7 @@ test("set_key() updates the key at a position", () => {
   // get_key() returns a serde-serialized plain object {kind, value}
   const updated = layer.get_key(0, 0);
   assert(updated !== undefined);
-  assert(updated.value === "z", `expected value "z", got ${updated.value}`);
+  assert(updated.char_output() === "z", `expected value "z", got ${updated.char_output()}`);
 });
 
 // ---------------------------------------------------------------------------
