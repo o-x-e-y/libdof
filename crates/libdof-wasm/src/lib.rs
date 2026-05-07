@@ -1,4 +1,5 @@
 mod combos;
+mod data_types;
 mod keyboard;
 mod layer;
 mod magic;
@@ -11,8 +12,10 @@ use libdof::prelude as libdof;
 use wasm_bindgen::prelude::*;
 
 use combos::*;
+use data_types::*;
 use keyboard::*;
 use layer::*;
+use magic::*;
 
 #[wasm_bindgen]
 pub struct Dof(libdof::Dof);
@@ -50,35 +53,28 @@ impl Dof {
     }
 
     /// Returns the form factor as a `FormFactor` value.
-    pub fn form_factor(&self) -> JsValue {
-        self.0.form_factor().to_string().into()
+    pub fn form_factor(&self) -> String {
+        self.0.form_factor().to_string()
     }
 
     /// Returns the named fingering if present, or `undefined`.
-    pub fn fingering_name(&self) -> JsValue {
-        match self.0.fingering_name() {
-            Some(nf) => nf.to_string().into(),
-            None => JsValue::undefined(),
-        }
+    pub fn fingering_name(&self) -> Option<String> {
+        self.0.fingering_name().map(ToString::to_string)
     }
 
     /// Returns the anchor as an `Anchor`.
-    pub fn anchor(&self) -> JsValue {
-        let anchor = self.0.anchor();
-        serde_wasm_bindgen::to_value(&[anchor.x(), anchor.y()]).unwrap()
+    pub fn anchor(&self) -> Anchor {
+        self.0.anchor().into()
     }
 
-    /// Returns the layout shape as `number[]` (keys per row).
-    pub fn shape(&self) -> JsValue {
-        let shape = self.0.shape().into_inner();
-        serde_wasm_bindgen::to_value(&shape).unwrap()
+    /// Returns the layout shape as `Uint32Array` (keys per row).
+    pub fn shape(&self) -> Vec<usize> {
+        self.0.shape().into_inner()
     }
 
     /// Returns the languages as `Language[]`.
-    pub fn languages(&self) -> JsValue {
-        let langs = self.0.languages().to_vec();
-
-        serde_wasm_bindgen::to_value(&langs).unwrap()
+    pub fn languages(&self) -> Vec<Language> {
+        self.0.languages().iter().cloned().map(Into::into).collect()
     }
 
     /// Returns the main layer as a `Layer` class instance.
@@ -129,8 +125,8 @@ impl Dof {
     }
 
     /// Returns the magic keys as a `Magic` class instance.
-    pub fn magic(&self) -> magic::Magic {
-        magic::Magic(self.0.magic().clone())
+    pub fn magic(&self) -> Magic {
+        Magic(self.0.magic().clone())
     }
 
     /// Returns the combos as a `Record<string, ComboEntry[]>`.
@@ -173,16 +169,14 @@ impl Dof {
     }
 
     /// Returns all keys at position `(row, col)` across all layers as a `Key[]`.
-    pub fn tower(&self, row: usize, col: usize) -> JsValue {
-        let keys: Vec<Key> = self
+    pub fn tower(&self, row: usize, col: usize) -> Vec<Key> {
+        self
             .0
             .tower((row, col))
             .iter()
             .cloned()
             .map(Key::from)
-            .collect();
-
-        serde_wasm_bindgen::to_value(&keys).unwrap()
+            .collect()
     }
 
     /// Returns the finger assigned to `(row, col)` as a `Finger` string, or `undefined`.
