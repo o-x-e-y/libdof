@@ -322,15 +322,20 @@ impl From<DofInternal> for DofIntermediate {
             dof.layers.remove("shift");
         }
 
-        let fingering = dof
-            .fingering_name
-            .map(ParsedFingering::Implicit)
-            .unwrap_or(ParsedFingering::Explicit(dof.fingering));
-
-        let fingering = if fingering == ParsedFingering::default() {
-            None
-        } else {
-            Some(fingering)
+        // Always serialise an explicitly-set named fingering, even if it equals the default
+        // (Traditional). Omitting it would cause load failures on non-standard / custom boards
+        // that cannot derive a fingering from a name. Only omit when no name was ever given AND
+        // the per-key data happens to equal the implicit default.
+        let fingering = match dof.fingering_name {
+            Some(name) => Some(ParsedFingering::Implicit(name)),
+            None => {
+                let explicit = ParsedFingering::Explicit(dof.fingering);
+                if explicit == ParsedFingering::default() {
+                    None
+                } else {
+                    Some(explicit)
+                }
+            }
         };
 
         let authors = match dof.authors.len() {
